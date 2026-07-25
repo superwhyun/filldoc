@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { SettingsIcon, Check } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
@@ -24,22 +24,23 @@ export type DocfillerSettings = {
   defaultProvider: AIProvider
 }
 
+const DEFAULT_SETTINGS: DocfillerSettings = {
+  openaiApiKey: "",
+  grokApiKey: "",
+  defaultProvider: "openai",
+}
+
+function loadStoredSettings(): DocfillerSettings {
+  if (typeof window === "undefined") return DEFAULT_SETTINGS
+  const stored = localStorage.getItem("docfiller-settings")
+  return stored ? JSON.parse(stored) : DEFAULT_SETTINGS
+}
+
 export function SettingsDialog() {
-  const [settings, setSettings] = useState<DocfillerSettings>({
-    openaiApiKey: "",
-    grokApiKey: "",
-    defaultProvider: "openai",
-  })
+  const [settings, setSettings] = useState<DocfillerSettings>(loadStoredSettings)
   const [open, setOpen] = useState(false)
   const [keyErrors, setKeyErrors] = useState({ openai: false, grok: false })
   const { toast } = useToast()
-
-  useEffect(() => {
-    const stored = localStorage.getItem("docfiller-settings")
-    if (stored) {
-      setSettings(JSON.parse(stored))
-    }
-  }, [])
 
   const validateOpenAIKey = (key: string) => {
     if (!key) return true // 비어있으면 OK (optional)
@@ -113,7 +114,7 @@ export function SettingsDialog() {
               className={keyErrors.openai ? "border-destructive" : ""}
             />
             {keyErrors.openai && (
-              <p className="text-xs text-destructive">⚠️ OpenAI API 키는 'sk-'로 시작해야 합니다</p>
+              <p className="text-xs text-destructive">⚠️ OpenAI API 키는 &apos;sk-&apos;로 시작해야 합니다</p>
             )}
             <p className="text-xs text-muted-foreground">
               모델: <span className="font-mono font-semibold">gpt-5.2</span> (Responses API, reasoning: low) | 발급: platform.openai.com/api-keys
@@ -134,7 +135,7 @@ export function SettingsDialog() {
               className={keyErrors.grok ? "border-destructive" : ""}
             />
             {keyErrors.grok && (
-              <p className="text-xs text-destructive">⚠️ Grok API 키는 'xai-'로 시작해야 합니다</p>
+              <p className="text-xs text-destructive">⚠️ Grok API 키는 &apos;xai-&apos;로 시작해야 합니다</p>
             )}
             <p className="text-xs text-muted-foreground">
               모델: <span className="font-mono font-semibold">grok-4-fast-non-reasoning</span> | 발급: console.x.ai

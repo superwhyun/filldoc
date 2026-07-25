@@ -96,7 +96,9 @@ export function TemplateUpload({ onTemplateUploaded }: Props) {
   }, [])
 
   useEffect(() => {
-    loadTemplates()
+    queueMicrotask(() => {
+      loadTemplates()
+    })
   }, [loadTemplates])
 
   const templateOptions = useMemo<TemplateOption[]>(() => {
