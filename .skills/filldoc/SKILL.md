@@ -49,7 +49,7 @@ Before finishing, confirm:
 
 ## CLI (브라우저/Next 서버 없이, 어디서든 실행)
 
-RepGen 저장소가 `npm link`로 전역에 연결되어 있어, **어느 작업 디렉토리에서든** 저장소를 몰라도 아래 커맨드를 바로 쓸 수 있다 (`cd`도, `npm --prefix`도 필요 없음):
+아래 7개 커맨드가 전역에 설치되어 있으면 **어느 작업 디렉토리에서든** 저장소 위치를 몰라도 바로 쓸 수 있다 (`cd`도, `npm --prefix`도 필요 없음):
 
 - `repgen-extract-doc` — 템플릿의 placeholder 목록 조회 (AI 키 불필요)
 - `repgen-render-doc` — 이미 정해진 값으로 템플릿 렌더링 (AI 키 불필요)
@@ -59,9 +59,27 @@ RepGen 저장소가 `npm link`로 전역에 연결되어 있어, **어느 작업
 - `repgen-build-template` — 예시 문서 없이 템플릿 스펙(JSON)만으로 docx를 새로 조립 (AI 키 불필요)
 - `repgen-analyze-doc` — 예시 문서를 RepGen 자체 AI에 통째로 넘겨 템플릿 생성 (OpenAI/Grok 키 필요, 보통 안 씀)
 
-(연결이 끊겼거나 새 환경이면 저장소에서 `npm link` 한 번 다시 실행하면 됨: `cd /Users/whyun/workspace/SERVICE/RepGen && npm link`)
+### 설치 (새 환경, 권장)
 
-템플릿 경로는 항상 절대경로를 쓴다: `/Users/whyun/workspace/SERVICE/RepGen/.skills/filldoc/templates/<파일명>.docx`
+저장소를 직접 clone할 필요 없이 GitHub에서 바로 전역 설치한다 (npm publish 없이 git 소스로 설치):
+
+```bash
+npm install -g git+https://github.com/superwhyun/RepGen.git
+```
+
+`repgen-*` 커맨드가 어디서든 바로 생긴다. 이후 새 버전으로 갱신하고 싶으면 같은 명령을 다시 실행하면 된다.
+
+### 설치 (이 저장소를 로컬에서 개발/디버깅할 때)
+
+이미 로컬에 clone해서 작업 중인 저장소라면 `npm link`로 연결해도 된다:
+
+```bash
+cd <REPO_ROOT> && npm install && npm link
+```
+
+아래 예시의 `<REPO_ROOT>`는 RepGen 저장소를 clone한 절대경로를 뜻한다 (이 `SKILL.md` 파일 경로에서 `.skills/filldoc/SKILL.md` 부분을 뗀 나머지). git 설치본을 쓴다면 이 경로 대신 npm이 전역에 설치한 패키지 경로(`npm root -g`/`repgen`)를 쓰면 된다.
+
+템플릿 경로는 항상 절대경로를 쓴다: `<REPO_ROOT>/.skills/filldoc/templates/<파일명>.docx`
 
 ### 0) 템플릿 목록 조회 / 추가
 
@@ -69,7 +87,7 @@ RepGen 저장소가 `npm link`로 전역에 연결되어 있어, **어느 작업
 
 - "지원하는 템플릿 뭐 있어?" 같은 요청을 받으면 이 폴더를 나열해서 답한다:
   ```bash
-  ls /Users/whyun/workspace/SERVICE/RepGen/.skills/filldoc/templates/*.docx
+  ls <REPO_ROOT>/.skills/filldoc/templates/*.docx
   ```
 - "템플릿 하나 만들어서 추가해줘" 같은 요청을 받으면, 새로 만든 `.docx`를 이 폴더 안에 저장한다(별도로 복사해둘 필요 없음 — 심볼릭 링크라 한 번만 저장하면 양쪽에 다 반영됨).
 
@@ -85,7 +103,7 @@ repgen-extract-text --file ./예시-회의록.docx
 repgen-templatize-doc \
   --source ./예시-회의록.docx \
   --edits ./edits.json \
-  --output /Users/whyun/workspace/SERVICE/RepGen/.skills/filldoc/templates/새템플릿.docx
+  --output <REPO_ROOT>/.skills/filldoc/templates/새템플릿.docx
 ```
 
 `edits.json` 형태:
@@ -122,7 +140,7 @@ repgen-templatize-doc \
 ```bash
 repgen-build-template \
   --spec ./spec.json \
-  --output /Users/whyun/workspace/SERVICE/RepGen/.skills/filldoc/templates/새템플릿.docx
+  --output <REPO_ROOT>/.skills/filldoc/templates/새템플릿.docx
 ```
 
 `spec.json` 형태 (TemplateGenerationJson, `lib/client-template-generator.ts`):
@@ -155,7 +173,7 @@ repgen-build-template \
 ```bash
 OPENAI_API_KEY=sk-... repgen-analyze-doc \
   --source ./예시-회의록.docx \
-  --output /Users/whyun/workspace/SERVICE/RepGen/.skills/filldoc/templates/새템플릿.docx \
+  --output <REPO_ROOT>/.skills/filldoc/templates/새템플릿.docx \
   --provider openai
 ```
 
@@ -167,12 +185,12 @@ OPENAI_API_KEY=sk-... repgen-analyze-doc \
 
 ```bash
 # 1단계: 템플릿에 어떤 placeholder가 있는지 확인 (AI 키 불필요)
-repgen-extract-doc --template /Users/whyun/workspace/SERVICE/RepGen/.skills/filldoc/templates/template-basic.docx
+repgen-extract-doc --template <REPO_ROOT>/.skills/filldoc/templates/template-basic.docx
 # -> { "placeholders": [{ "key": "title", "description": "...", "isLoop": true, "fields": [...] }, ...] }
 
 # 2단계: 에이전트가 스스로 값을 채워서 렌더링 (AI 키 불필요)
 repgen-render-doc \
-  --template /Users/whyun/workspace/SERVICE/RepGen/.skills/filldoc/templates/template-basic.docx \
+  --template <REPO_ROOT>/.skills/filldoc/templates/template-basic.docx \
   --data-json '{"title":"...", "tasks":[{"no":"1","name":"...","owner":"...","due":"..."}]}' \
   --output ./filled.docx
 ```
@@ -188,7 +206,7 @@ repgen-render-doc \
 
 ```bash
 OPENAI_API_KEY=sk-... repgen-fill-doc \
-  --template /Users/whyun/workspace/SERVICE/RepGen/.skills/filldoc/templates/template-basic.docx \
+  --template <REPO_ROOT>/.skills/filldoc/templates/template-basic.docx \
   --data ./minutes.docx,./notes.txt \
   --output ./filled.docx \
   --provider openai
@@ -211,4 +229,4 @@ OPENAI_API_KEY=sk-... repgen-fill-doc \
 
 ## References
 
-- RepGen project conventions: `/Users/whyun/workspace/SERVICE/RepGen/AGENTS.md`
+- RepGen project conventions: `<REPO_ROOT>/AGENTS.md`

@@ -11,7 +11,19 @@ Word 템플릿의 플레이스홀더를 AI가 자동으로 채워주는 Next.js 
 - **Word 파일 지원**: .docx 파일에서 텍스트 자동 추출
 - **실시간 편집**: AI가 생성한 내용을 바로 수정 가능
 
-## 📋 사용법
+## 🤖 AI 에이전트가 CLI로 쓰기 (브라우저 없이)
+
+Hermes 같은 AI 에이전트는 브라우저나 Next 서버 없이, 이 저장소를 전역 CLI로 설치해서 바로 쓸 수 있다.
+
+```bash
+npm install -g git+https://github.com/superwhyun/RepGen.git
+```
+
+`repgen-extract-doc`, `repgen-render-doc`, `repgen-fill-doc`, `repgen-extract-text`, `repgen-templatize-doc`, `repgen-build-template`, `repgen-analyze-doc` 커맨드가 어느 작업 디렉토리에서든 바로 실행된다.
+
+전체 커맨드 목록, 파라미터, 데이터 형식, 에러 처리 방식은 [`.skills/filldoc/SKILL.md`](./.skills/filldoc/SKILL.md)에 정리되어 있다. **에이전트는 이 저장소 링크만 받았다면 README보다 그 파일을 먼저 읽고 그대로 따라 하면 된다.**
+
+## 📋 사용법 (웹 UI)
 
 ### 1️⃣ 설치 및 실행
 
