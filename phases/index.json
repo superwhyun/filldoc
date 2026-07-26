@@ -1,0 +1,10 @@
+{
+  "phases": [
+    {
+      "dir": "0-docx-to-template",
+      "name": "docx-to-template",
+      "status": "completed",
+      "description": "실제 예시 .docx 문서를 분석해서 재사용 가능한 RepGen 템플릿({{placeholder}} 포함)을 생성하는 repgen-analyze-doc CLI/스킬 기능 추가"
+    }
+  ]
+}

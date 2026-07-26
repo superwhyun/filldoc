@@ -21,14 +21,15 @@ type GenerateTemplateInput = {
   templateName?: string
 }
 
-type TemplateBlock =
+export type TemplateBlock =
   | { type: "heading"; level?: 1 | 2 | 3; text: string }
   | { type: "paragraph"; text: string }
   | { type: "bullet_list"; items: string[] }
   | { type: "table"; header: string[]; rows: string[][] }
   | { type: "spacer"; lines?: number }
+  | { type: "repeating_section"; loopName: string; blocks: Array<{ type: "heading" | "paragraph"; level?: 1 | 2 | 3; text: string }> }
 
-type TemplateGenerationJson = {
+export type TemplateGenerationJson = {
   fileName?: string
   title?: string
   subtitle?: string
@@ -49,7 +50,7 @@ const OUTPUT_SCHEMA = {
         properties: {
           type: {
             type: "string",
-            enum: ["heading", "paragraph", "bullet_list", "table", "spacer"],
+            enum: ["heading", "paragraph", "bullet_list", "table", "spacer", "repeating_section"],
           },
           level: { anyOf: [{ type: "number", enum: [1, 2, 3] }, { type: "null" }] },
           text: { type: "string" },
@@ -69,8 +70,22 @@ const OUTPUT_SCHEMA = {
             },
           },
           lines: { type: "number" },
+          loopName: { anyOf: [{ type: "string" }, { type: "null" }] },
+          blocks: {
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                type: { type: "string", enum: ["heading", "paragraph"] },
+                level: { anyOf: [{ type: "number", enum: [1, 2, 3] }, { type: "null" }] },
+                text: { type: "string" },
+              },
+              required: ["type", "level", "text"],
+              additionalProperties: false,
+            },
+          },
         },
-        required: ["type", "level", "text", "items", "header", "rows", "lines"],
+        required: ["type", "level", "text", "items", "header", "rows", "lines", "loopName", "blocks"],
         additionalProperties: false,
       },
     },
@@ -98,15 +113,48 @@ function buildPrompt(userRequest: string, templateName?: string) {
 3) 같은 key 재사용은 완전히 같은 의미일 때만 허용.
 4) blocks는 읽기 좋은 문서 레이아웃(제목, 섹션 제목, 본문, 목록, 표)을 포함할 것.
 5) 표가 필요하면 type="table"로 구성하고, rows 안에 플레이스홀더를 넣어도 됨.
+5.5) 표가 아니라 "제목+본문" 같은 문단 구조가 여러 번 반복되는 섹션이 필요하면 type="repeating_section"을 쓰고, loopName(snake_case)과 blocks(heading/paragraph만, plain {{field}} placeholder 사용, dot 표기 금지)를 채울 것. 반복 횟수만큼 복제하지 말고 한 번만 작성할 것.
 6) 반드시 JSON만 출력. 설명/마크다운/코드블록 금지.
 7) blocks의 각 item에는 아래 키를 항상 모두 포함:
-   - type, level, text, items, header, rows, lines
+   - type, level, text, items, header, rows, lines, loopName, blocks
    - 미사용 필드는 기본값 사용:
-     level=null, text="", items=[], header=[], rows=[], lines=1
+     level=null, text="", items=[], header=[], rows=[], lines=1, loopName=null, blocks=[]
 
 선호 파일명(선택): ${templateName?.trim() ? templateName.trim() : "(없음)"}
 사용자 요구사항:
 ${userRequest}`
+}
+
+function buildAnalyzePrompt(sourceText: string, templateName?: string) {
+  return `당신은 Word(.docx) 템플릿 설계 전문가입니다.
+
+목표:
+- 아래는 실제로 작성 완료된 예시 문서의 텍스트입니다. 이 문서를 분석해서, 같은 형식의 문서를 반복해서 만들 때 재사용할 수 있는 "템플릿" 구조를 JSON으로 생성하세요.
+- 문서 안에서 매번 바뀔 수 있는 부분(날짜, 이름, 문서번호, 각 항목의 제목/본문 등 "인스턴스별 데이터")과, 항상 똑같이 유지되는 상용구(boilerplate)를 구분하세요.
+- 인스턴스별 데이터는 아래 플레이스홀더 문법으로 바꾸세요.
+
+플레이스홀더 문법:
+- 일반: {{company}}
+- 설명 포함: {{project_name:프로젝트 공식 명칭, 원문 예시 참고}}
+- 표 안 반복(dot 표기): {{tasks.no}}, {{tasks.name}}
+- 문단 반복(repeating_section): loopName + blocks(heading/paragraph, plain {{field}})
+
+중요 규칙:
+1) 의미가 다른 필드는 key를 절대 재사용하지 말 것.
+2) key는 snake_case 영어 사용.
+3) description에는 원문에서 어떤 값이 들어있었는지 예시로 남겨서, 나중에 이 템플릿을 채우는 사람/AI가 형식을 알 수 있게 할 것.
+4) 문서 안에서 유사한 구조(제목+본문 등)가 여러 번 반복되면(예: 번호 매겨진 항목 목록), type="repeating_section" 블록 하나로 표현하세요. **반복 횟수만큼 blocks를 복제하지 말고 대표 예시 1회분만** 작성하고, loopName(snake_case)을 정하고, 반복 내부 값은 plain {{field}} placeholder(dot 표기 금지)로 표시하세요.
+5) 실제 Word 표(격자) 형태의 반복은 type="table"을 쓰고 셀 안에 {{parent.field}} dot 표기를 쓰세요.
+6) 문서의 나머지 구조(제목, 섹션 헤딩, 서두 문단, 마무리 문단 등)는 heading/paragraph/bullet_list/spacer 블록으로 최대한 원문 순서와 구조를 보존해서 표현하세요.
+7) 반드시 JSON만 출력. 설명/마크다운/코드블록 금지.
+8) blocks의 각 item에는 아래 키를 항상 모두 포함:
+   - type, level, text, items, header, rows, lines, loopName, blocks
+   - 미사용 필드는 기본값 사용:
+     level=null, text="", items=[], header=[], rows=[], lines=1, loopName=null, blocks=[]
+
+선호 파일명(선택): ${templateName?.trim() ? templateName.trim() : "(없음)"}
+예시 문서 텍스트:
+${sourceText}`
 }
 
 function normalizeFileName(name: string) {
@@ -200,6 +248,16 @@ function normalizeConflictingPlaceholderKeys(spec: TemplateGenerationJson) {
               block.rows[rowIdx][cellIdx] = next
             },
           })
+        })
+      })
+    }
+    if (block.type === "repeating_section") {
+      block.blocks.forEach((innerBlock, innerIdx) => {
+        textRefs.push({
+          get: () => block.blocks[innerIdx].text,
+          set: (next) => {
+            block.blocks[innerIdx].text = next
+          },
         })
       })
     }
@@ -387,6 +445,44 @@ async function createStyledDocx(spec: TemplateGenerationJson) {
       continue
     }
 
+    if (block.type === "repeating_section") {
+      // {{#loopName}} / {{/loopName}}는 다른 텍스트와 절대 같은 TextRun에 섞지 않는다.
+      // 각각 독립된 Paragraph/TextRun에 담아야 docxtemplater의 loop pairing이 안전하게 동작한다.
+      children.push(
+        new Paragraph({
+          spacing: { after: 0 },
+          children: [new TextRun({ text: `{{#${block.loopName}}}`, size: 2 })],
+        }),
+      )
+
+      for (const innerBlock of block.blocks) {
+        if (innerBlock.type === "heading") {
+          children.push(
+            new Paragraph({
+              heading: toHeadingLevel(innerBlock.level),
+              spacing: { before: 200, after: 120 },
+              children: [new TextRun({ text: innerBlock.text, bold: true })],
+            }),
+          )
+        } else {
+          children.push(
+            new Paragraph({
+              spacing: { after: 140 },
+              children: [new TextRun({ text: innerBlock.text, size: 22 })],
+            }),
+          )
+        }
+      }
+
+      children.push(
+        new Paragraph({
+          spacing: { after: 160 },
+          children: [new TextRun({ text: `{{/${block.loopName}}}`, size: 2 })],
+        }),
+      )
+      continue
+    }
+
     if (block.type === "spacer") {
       const lines = Math.max(1, Math.min(8, Math.floor(block.lines ?? 1)))
       for (let i = 0; i < lines; i++) {
@@ -539,6 +635,52 @@ export async function generateTemplateDocx(input: GenerateTemplateInput) {
   const normalized = normalizeConflictingPlaceholderKeys(parsed)
 
   const fileName = normalizeFileName(input.templateName || normalized.fileName || `ai-template-${Date.now()}.docx`)
+  const blob = await createStyledDocx(normalized)
+  const file = new File([blob], fileName, {
+    type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  })
+
+  return { file, spec: normalized }
+}
+
+/**
+ * 이미 호출자(예: 이미 LLM인 에이전트)가 직접 결정한 TemplateGenerationJson 스펙을
+ * 그대로 docx로 조립한다. AI 호출이 전혀 없다 — RepGen은 순수 문서 조립기 역할만 한다.
+ */
+export async function buildTemplateFromSpec(spec: TemplateGenerationJson, templateName?: string) {
+  const normalized = normalizeConflictingPlaceholderKeys(spec)
+  const fileName = normalizeFileName(templateName || normalized.fileName || `template-${Date.now()}.docx`)
+  const blob = await createStyledDocx(normalized)
+  const file = new File([blob], fileName, {
+    type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  })
+
+  return { file, spec: normalized }
+}
+
+type GenerateTemplateFromSampleInput = {
+  provider: TemplateAIProvider
+  apiKey: string
+  sourceText: string
+  templateName?: string
+}
+
+/**
+ * 자연어 요청 대신, 실제로 작성 완료된 예시 문서의 텍스트를 분석해서
+ * 재사용 가능한 템플릿을 생성한다. generateTemplateDocx와 파이프라인은 동일하고
+ * 프롬프트만 buildAnalyzePrompt로 바뀐다.
+ */
+export async function generateTemplateFromSample(input: GenerateTemplateFromSampleInput) {
+  const prompt = buildAnalyzePrompt(input.sourceText, input.templateName)
+  const rawText =
+    input.provider === "openai"
+      ? await generateWithOpenAI(input.apiKey, prompt)
+      : await generateWithGrok(input.apiKey, prompt)
+
+  const parsed = parseGenerationJson(rawText)
+  const normalized = normalizeConflictingPlaceholderKeys(parsed)
+
+  const fileName = normalizeFileName(input.templateName || normalized.fileName || `sample-template-${Date.now()}.docx`)
   const blob = await createStyledDocx(normalized)
   const file = new File([blob], fileName, {
     type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",

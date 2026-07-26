@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "phase": "0-docx-to-template",
+  "baseline": null,
+  "policy": {
+    "context_mode": "contract-first",
+    "frozen_after_completion": true,
+    "default_read_order": [
+      "baseline",
+      "registry",
+      "module-doc",
+      "current-step",
+      "targeted-implementation-only-if-needed"
+    ]
+  },
+  "modules": [
+    {
+      "ref": "docs/modules/template-analyzer/MODULE.md",
+      "owner_steps": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "phase_status": "planned"
+    }
+  ],
+  "integration_points": [
+    "lib/client-template-generator.ts: generateTemplateFromSample (신규 export, 기존 generateTemplateDocx와 병행)",
+    "lib/server/extract-text.ts: extractTextFromBuffer (기존, 그대로 재사용)",
+    ".skills/filldoc/templates/ (= template/ symlink): 생성된 템플릿 저장 위치",
+    "package.json bin.repgen-analyze-doc (신규, npm link로 전역 노출)"
+  ],
+  "deferred_backlog": []
+}

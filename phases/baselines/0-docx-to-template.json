@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "phase": "0-docx-to-template",
+  "tag": "RepGen-phase0-done",
+  "source_module_map": "phases/0-docx-to-template/module-map.json",
+  "modules": [
+    {
+      "name": "template-analyzer",
+      "doc": "docs/modules/template-analyzer/MODULE.md",
+      "public_exports": [
+        "lib/client-template-generator.ts: TemplateBlock (repeating_section 추가), TemplateGenerationJson (both exported)",
+        "lib/client-template-generator.ts: buildTemplateFromSpec(spec, templateName?) — AI 키 불필요, 기본 경로",
+        "lib/client-template-generator.ts: generateTemplateFromSample(input) — AI 키 필요, 보조 경로",
+        "scripts/extract-text.ts (bin: repgen-extract-text) — 임의 문서 텍스트 추출, AI 키 불필요",
+        "scripts/build-template.ts (bin: repgen-build-template) — 스펙(JSON) → docx 조립, AI 키 불필요",
+        "scripts/analyze-doc.ts (bin: repgen-analyze-doc) — 예시 문서를 RepGen 자체 AI로 분석, AI 키 필요"
+      ]
+    }
+  ],
+  "routes": [],
+  "shared_contracts": [
+    "lib/client-template-generator.ts"
+  ],
+  "integration_points": [
+    ".skills/filldoc/templates/ (= template/ symlink) — 생성된 템플릿 저장 위치",
+    "package.json bin.repgen-extract-text, bin.repgen-build-template, bin.repgen-analyze-doc (npm link로 전역 노출)"
+  ],
+  "known_issues": [
+    "repeating_section 내부 필드({{no}} 등)에 :description을 붙여도 extract-doc 결과 JSON에는 반영되지 않는다 (기존 명시적 {{#loop}} 문법의 공통 제약 — dot-notation 표 전용 첫 필드 캡처 로직만 예외). 원문 예시는 문서 텍스트 자체에는 남지만 extract-doc JSON에는 안 뜬다.",
+    "generateTemplateFromSample/repgen-analyze-doc 경로는 실제 API 키로 라이브 검증하지 못했다 (환경에 키 없음). buildTemplateFromSpec과 파이프라인 대부분을 공유하므로 위험은 낮지만, 실사용 전 1회 확인 권장."
+  ],
+  "written_at": "2026-07-26"
+}

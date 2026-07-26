@@ -54,6 +54,10 @@ RepGen 저장소가 `npm link`로 전역에 연결되어 있어, **어느 작업
 - `repgen-extract-doc` — 템플릿의 placeholder 목록 조회 (AI 키 불필요)
 - `repgen-render-doc` — 이미 정해진 값으로 템플릿 렌더링 (AI 키 불필요)
 - `repgen-fill-doc` — 원본 자료를 주고 RepGen 자체 AI로 채우기 (OpenAI/Grok 키 필요)
+- `repgen-extract-text` — 임의 문서(.docx/.pdf/.txt/.md)에서 순수 텍스트만 추출 (AI 키 불필요)
+- `repgen-templatize-doc` — 예시 문서의 원본 서식(폰트/스타일)을 유지한 채 템플릿으로 변환 (AI 키 불필요, 예시 문서가 있을 때 기본)
+- `repgen-build-template` — 예시 문서 없이 템플릿 스펙(JSON)만으로 docx를 새로 조립 (AI 키 불필요)
+- `repgen-analyze-doc` — 예시 문서를 RepGen 자체 AI에 통째로 넘겨 템플릿 생성 (OpenAI/Grok 키 필요, 보통 안 씀)
 
 (연결이 끊겼거나 새 환경이면 저장소에서 `npm link` 한 번 다시 실행하면 됨: `cd /Users/whyun/workspace/SERVICE/RepGen && npm link`)
 
@@ -68,6 +72,94 @@ RepGen 저장소가 `npm link`로 전역에 연결되어 있어, **어느 작업
   ls /Users/whyun/workspace/SERVICE/RepGen/.skills/filldoc/templates/*.docx
   ```
 - "템플릿 하나 만들어서 추가해줘" 같은 요청을 받으면, 새로 만든 `.docx`를 이 폴더 안에 저장한다(별도로 복사해둘 필요 없음 — 심볼릭 링크라 한 번만 저장하면 양쪽에 다 반영됨).
+
+### 0.5) 원하는 템플릿이 없을 때 — 예시 문서로 새 템플릿 만들기, 원본 서식 유지 (권장, AI 키 불필요)
+
+사용자가 "이 문서 형식대로 템플릿 만들어줘" 또는 이미 채워진 문서를 예시로 주면서 "이런 문서 또 만들 수 있게 템플릿화해줘"라고 요청하면 이 경로를 쓴다. 호출하는 에이전트 자신이 이미 LLM이므로 RepGen이 또 OpenAI/Grok을 호출할 필요가 없고, **원본 파일을 그대로 열어서 바뀌는 부분만 치환**하기 때문에 폰트/크기/굵게/밑줄/정렬 등 원본 서식이 그대로 유지된다 (완전히 새로 그리는 게 아님).
+
+```bash
+# 1단계: 예시 문서에서 텍스트만 뽑아서 읽기 (AI 키 불필요) — .docx는 직접 못 읽으므로 이걸로 내용 확인
+repgen-extract-text --file ./예시-회의록.docx
+
+# 2단계: 에이전트가 원문을 읽고 "어떤 문단을 뭘로 바꿀지" edits를 직접 만든 뒤 적용 (AI 키 불필요)
+repgen-templatize-doc \
+  --source ./예시-회의록.docx \
+  --edits ./edits.json \
+  --output /Users/whyun/workspace/SERVICE/RepGen/.skills/filldoc/templates/새템플릿.docx
+```
+
+`edits.json` 형태:
+```json
+[
+  { "type": "replace", "match": "SC 6/WG 7 N484",
+    "runs": [{ "text": "{{doc_number:문서 번호, 예: SC 6/WG 7 N484}}" }] },
+  { "type": "replace", "match": "Title:",
+    "runs": [{ "text": "Title:" }, { "tab": true }, { "text": "{{doc_title:...}}" }] },
+  { "type": "insert-paragraph", "anchorMatch": "Recommendation WG7.1", "position": "before",
+    "runs": [{ "text": "{{#recommendations}}" }] },
+  { "type": "replace", "match": "Recommendation WG7.1",
+    "runs": [{ "text": "Recommendation {{no}}" }, { "tab": true }, { "text": "{{title}}" }] },
+  { "type": "replace", "match": "SC 6 experts interested in the following incoming",
+    "runs": [{ "text": "{{body}}" }] },
+  { "type": "insert-paragraph", "anchorMatch": "SC 6 experts interested in the following incoming", "position": "after",
+    "runs": [{ "text": "{{/recommendations}}" }] },
+  { "type": "delete-range", "fromMatch": "SC 6 N18437", "toMatch": "China National Body" }
+]
+```
+
+- `match`/`fromMatch`/`toMatch`/`anchorMatch`는 원문 문단에 포함된 부분 문자열이면 된다 (`repgen-extract-text` 출력에서 그대로 가져다 쓰면 됨). 문서 순서상 처음 매칭되는 문단을 사용하며, 매칭은 항상 원본 문서 기준이라 edits 순서와 무관하다.
+- `replace`: 매칭된 문단 내용을 통째로 교체한다. 문단 서식(`pPr`)과 첫 run의 문자 서식(`rPr` — 폰트/크기/굵게 등)은 원본 그대로 유지되고 텍스트만 바뀐다. 탭으로 라벨과 값이 나뉜 문단(`Title:<tab>값`)은 `runs`를 label/tab/value 3개로 나눠 적는다.
+- `delete-range`: `fromMatch`가 있는 문단부터 (그 이후 처음 나오는) `toMatch`가 있는 문단까지 통째로 삭제한다. **반복되는 항목(예: recommendation 2~14)은 첫 번째만 loop로 남기고 나머지 전부와, 첫 번째 항목의 부가 세부사항(하위 불릿 등)까지 이 delete-range로 지운다.**
+- `insert-paragraph`: 앵커 문단 앞/뒤에 태그 전용 새 문단을 끼워 넣는다. **여러 문단에 걸친 loop 시작/끝 태그(`{{#x}}`/`{{/x}}`)는 반드시 이 타입으로 별도 문단에 넣어야 한다.** `replace`의 runs에 다른 텍스트와 같이 섞으면 docxtemplater가 반복 사이 문단 구분(줄바꿈)을 없애버려서 항목들이 한 문단으로 붙어버린다 — 실제로 겪은 버그이니 반드시 이 패턴을 따른다.
+- `--edits` 대신 `--edits-json '<json string>'`도 가능(짧을 때만 권장, 보통은 파일 방식이 안전).
+- 성공 시 stdout에 `{ output, placeholderCount, templateValid }` JSON을 출력. `templateValid: false`면 loop 짝(`{{#x}}`/`{{/x}}`) 문제 등이 있다는 뜻.
+- 생성 직후 `repgen-extract-doc`으로 placeholder 목록을, 필요하면 실제로 파일을 열어서(`open <path>`) 서식이 원본과 맞는지 확인한다.
+
+### 0.6) 참고할 예시 문서가 없을 때 — 스펙만으로 템플릿을 처음부터 새로 만들기
+
+참고할 실제 문서가 없어서 원본 서식을 유지할 게 없는 경우(완전히 새로운 형식을 만드는 경우)에만 이 경로를 쓴다. 원본이 있다면 0.5)를 쓴다 — 이쪽은 `docx` 라이브러리로 문서를 새로 그리기 때문에 서식이 RepGen 기본 스타일로 나온다.
+
+```bash
+repgen-build-template \
+  --spec ./spec.json \
+  --output /Users/whyun/workspace/SERVICE/RepGen/.skills/filldoc/templates/새템플릿.docx
+```
+
+`spec.json` 형태 (TemplateGenerationJson, `lib/client-template-generator.ts`):
+```json
+{
+  "title": "문서 제목",
+  "blocks": [
+    { "type": "paragraph", "text": "{{doc_number:문서 번호, 원문 예시 참고}}" },
+    {
+      "type": "repeating_section",
+      "loopName": "recommendations",
+      "blocks": [
+        { "type": "heading", "level": 2, "text": "Recommendation {{no}}" },
+        { "type": "paragraph", "text": "{{title}}" },
+        { "type": "paragraph", "text": "{{body}}" }
+      ]
+    }
+  ]
+}
+```
+
+- `blocks` 타입: `heading | paragraph | bullet_list | table | spacer | repeating_section`. 표가 아닌 문단 구조가 반복되면 `repeating_section`(loopName + blocks, **반복 횟수만큼 복제하지 말고 1회분만** 작성), 표 형태 반복은 `table` + `{{parent.field}}` dot 표기.
+- `--spec` 대신 `--spec-json '<json string>'`도 가능.
+- 성공 시 stdout에 `{ output, placeholderCount, templateValid }` JSON을 출력.
+
+### 0.7) RepGen 자체 AI로 예시 문서를 분석시키고 싶을 때 (선택, 보통 안 씀)
+
+에이전트가 직접 분석하지 않고 원본 문서만 던져서 RepGen이 알아서(OpenAI/Grok으로) 템플릿 구조를 추론하게 하고 싶을 때만 사용. 이 경로도 `build-template`과 마찬가지로 문서를 새로 그리므로 원본 서식은 유지되지 않는다.
+
+```bash
+OPENAI_API_KEY=sk-... repgen-analyze-doc \
+  --source ./예시-회의록.docx \
+  --output /Users/whyun/workspace/SERVICE/RepGen/.skills/filldoc/templates/새템플릿.docx \
+  --provider openai
+```
+
+성공 시 stdout에 `{ output, placeholderCount, repeatingSectionKeys, tableLoopKeys, templateValid }` JSON을 출력한다.
 
 ### 1) Hermes 같은 AI 에이전트가 호출할 때 (권장, API 키 불필요)
 
@@ -115,7 +207,7 @@ OPENAI_API_KEY=sk-... repgen-fill-doc \
 
 ### 참고: 저장소 안에서 개발/디버깅할 때
 
-`npm run extract-doc -- ...` / `npm run render-doc -- ...` / `npm run fill-doc -- ...` (저장소 루트에서, `tsx`로 실행)도 그대로 남아있다. 전역 커맨드(`repgen-*`)와 완전히 동일한 코드를 실행한다.
+`npm run extract-doc -- ...` / `npm run render-doc -- ...` / `npm run fill-doc -- ...` / `npm run extract-text -- ...` / `npm run templatize-doc -- ...` / `npm run build-template -- ...` / `npm run analyze-doc -- ...` (저장소 루트에서, `tsx`로 실행)도 그대로 남아있다. 전역 커맨드(`repgen-*`)와 완전히 동일한 코드를 실행한다.
 
 ## References
 

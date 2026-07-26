@@ -1,0 +1,42 @@
+{
+  "schema_version": 2,
+  "project": "RepGen",
+  "phase": "0-docx-to-template",
+  "execution_policy": {
+    "context_mode": "contract-first",
+    "blocking_fix_priority": true,
+    "append_only_steps": true
+  },
+  "steps": [
+    {
+      "step": 0,
+      "name": "bootstrap-and-contract",
+      "status": "completed",
+      "summary": "docs/modules/registry.json, docs/modules/template-analyzer/MODULE.md 작성, module-map.json에 단일 모듈 ref/integration_points 확정"
+    },
+    {
+      "step": 1,
+      "name": "schema-and-prompt",
+      "status": "completed",
+      "summary": "lib/client-template-generator.ts에 RepeatingSectionBlock 타입, OUTPUT_SCHEMA 확장, buildAnalyzePrompt, generateTemplateFromSample, createStyledDocx의 repeating_section 렌더링(loop 태그를 독립 Paragraph로 삽입) 추가. 기존 generateTemplateDocx 동작 불변."
+    },
+    {
+      "step": 2,
+      "name": "cli-wrapper",
+      "status": "completed",
+      "summary": "scripts/analyze-doc.ts(repgen-analyze-doc) 작성, package.json bin/scripts 등록, npm link로 전역 노출 확인"
+    },
+    {
+      "step": 3,
+      "name": "skill-docs",
+      "status": "completed",
+      "summary": ".skills/filldoc/SKILL.md에 사용법 문서화 (이후 step4에서 AI-키-불필요 경로가 기본으로 바뀌며 재정리)"
+    },
+    {
+      "step": 4,
+      "name": "e2e-verification",
+      "status": "completed",
+      "summary": "실행 중 에이전트가 이미 LLM이라 RepGen 자체 AI 호출이 불필요하다는 게 확인되어(fill-doc -> extract-doc+render-doc과 동일한 이유) buildTemplateFromSpec/repgen-extract-text/repgen-build-template(AI 키 불필요, 기본 경로)를 추가하고 generateTemplateFromSample/repgen-analyze-doc은 보조 경로로 유지. 실제 SC 6/WG 7 N484 Recommendations 문서(recommendation 14개)로 extract-text -> (에이전트가 스펙 작성) -> build-template -> extract-doc -> render-doc 전량 왕복 성공 확인. 웹 UI AI 템플릿 생성 경로 회귀 없음, tsc/lint 클린. docs/modules 갱신 및 baseline 작성 완료."
+    }
+  ]
+}
