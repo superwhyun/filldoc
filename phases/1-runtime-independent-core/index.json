@@ -1,0 +1,36 @@
+{
+  "schema_version": 2,
+  "project": "RepGen",
+  "phase": "runtime-independent-core",
+  "execution_policy": {
+    "context_mode": "contract-first",
+    "blocking_fix_priority": true,
+    "append_only_steps": true
+  },
+  "steps": [
+    {
+      "step": 0,
+      "name": "core-contracts",
+      "status": "completed",
+      "summary": "현재 CLI/API/UI의 입력·출력·오류 계약과 AI-agent→core JSON 경계를 고정하고 document-core public API를 문서화한다"
+    },
+    {
+      "step": 1,
+      "name": "core-extraction",
+      "status": "pending",
+      "summary": "문서 처리의 단일 구현을 packages/core로 이동하고, Node Buffer/Uint8Array 기반 API로 소비자 import를 전환한다"
+    },
+    {
+      "step": 2,
+      "name": "core-regression-tests",
+      "status": "pending",
+      "summary": "템플릿 문법, loop, 누락 데이터, 손상/지원 불가 파일에 대한 core 회귀 테스트를 추가한다"
+    },
+    {
+      "step": 3,
+      "name": "phase-close",
+      "status": "pending",
+      "summary": "lint/typecheck/test를 통과시키고 core baseline과 다음 phase용 public contract를 기록한다"
+    }
+  ]
+}

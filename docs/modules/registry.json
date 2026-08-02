@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "project": "RepGen",
-  "updated_at": "2026-07-26",
+  "updated_at": "2026-08-03",
   "modules": {
     "template-analyzer": {
       "persona": "template-analyzer",
@@ -9,6 +9,13 @@
       "status": "implemented",
       "children": [],
       "module_doc": "docs/modules/template-analyzer/MODULE.md"
+    },
+    "document-core": {
+      "persona": "document-core",
+      "version": "1.0.0",
+      "status": "planned",
+      "children": [],
+      "module_doc": "docs/modules/document-core/MODULE.md"
     }
   }
 }

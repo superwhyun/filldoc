@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "phase": "3-web-adapter",
+  "baseline": "phases/baselines/2-cli-product-surface.json",
+  "policy": {
+    "context_mode": "contract-first",
+    "frozen_after_completion": true,
+    "default_read_order": [
+      "baseline",
+      "registry",
+      "module-doc",
+      "current-step",
+      "targeted-implementation-only-if-needed"
+    ]
+  },
+  "modules": [
+    {
+      "ref": "docs/modules/web-adapter/MODULE.md",
+      "owner_steps": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "phase_status": "planned"
+    }
+  ],
+  "integration_points": [
+    "packages/core and packages/cli contracts from Phases 1–2",
+    "app/api/* HTTP routes",
+    "app/page.tsx and components/{template-upload,data-upload,content-editor,settings-dialog}.tsx"
+  ],
+  "deferred_backlog": []
+}

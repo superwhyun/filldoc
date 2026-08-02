@@ -5,6 +5,24 @@
       "name": "docx-to-template",
       "status": "completed",
       "description": "실제 예시 .docx 문서를 분석해서 재사용 가능한 RepGen 템플릿({{placeholder}} 포함)을 생성하는 repgen-analyze-doc CLI/스킬 기능 추가"
+    },
+    {
+      "dir": "1-runtime-independent-core",
+      "name": "runtime-independent-core",
+      "status": "pending",
+      "description": "문서 처리와 AI provider 경계를 Node 런타임 독립 core 계약으로 확정하고, 중복 없는 단일 구현 및 회귀 테스트를 만든다"
+    },
+    {
+      "dir": "2-cli-product-surface",
+      "name": "cli-product-surface",
+      "status": "pending",
+      "description": "CLI를 공식 제품 인터페이스로 확정하고, 파일시스템/환경변수 어댑터와 배포 의존성 경계를 정리한다"
+    },
+    {
+      "dir": "3-web-adapter",
+      "name": "web-adapter",
+      "status": "pending",
+      "description": "Next.js API와 React UI를 core/CLI 계약의 얇은 웹 어댑터로 전환하고 웹 회귀를 검증한다"
     }
   ]
 }

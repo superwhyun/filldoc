@@ -1,0 +1,19 @@
+{
+  "goal": "RepGen의 문서 처리 핵심을 Next.js/React/HTTP로부터 분리해 Node CLI를 공식 제품 인터페이스로 만들고, 기존 웹 UI는 같은 코어를 호출하는 선택적 어댑터로 유지한다.",
+  "success_criteria": [
+    "템플릿 분석, 텍스트 추출, 데이터 검증, DOCX 렌더링, 템플릿화는 인터넷·브라우저·Next.js 없이 CLI에서 실행된다.",
+    "AI 에이전트는 API 키 없이 inspect/extract/render/templatize CLI를 호출해 자체 판단한 구조화 데이터를 문서로 만들 수 있다.",
+    "기존 자체 AI 채움(fill-doc)은 core 밖의 선택적 호환 provider 어댑터로 유지한다.",
+    "기존 repgen-* 명령의 지원 인자와 stdout JSON 성공 계약은 호환되거나 명시적으로 마이그레이션된다.",
+    "기존 웹 UI의 템플릿 업로드·placeholder 편집·참고자료 업로드·provider 선택/BYOK·문서 다운로드 흐름은 유지하되, 문서 처리 규칙은 core의 검증된 계약만 사용한다.",
+    "Claude Code, Codex 등의 에이전트는 filldoc skill을 통해 API 키 없이 core CLI를 호출하고, 자신이 만든 구조화 데이터로 템플릿을 채우거나 예시 문서를 템플릿화할 수 있다.",
+    "코어 단위/통합 검증과 CLI 및 웹 회귀 검증이 자동화되어 있다."
+  ],
+  "auto_checks": [
+    "pnpm lint",
+    "pnpm exec tsc --noEmit --pretty false",
+    "pnpm test"
+  ],
+  "max_phases": 3,
+  "stagnation_limit": 3
+}

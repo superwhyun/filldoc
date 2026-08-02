@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "phase": "2-cli-product-surface",
+  "baseline": "phases/baselines/1-runtime-independent-core.json",
+  "policy": {
+    "context_mode": "contract-first",
+    "frozen_after_completion": true,
+    "default_read_order": [
+      "baseline",
+      "registry",
+      "module-doc",
+      "current-step",
+      "targeted-implementation-only-if-needed"
+    ]
+  },
+  "modules": [
+    {
+      "ref": "docs/modules/cli-surface/MODULE.md",
+      "owner_steps": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "phase_status": "planned"
+    }
+  ],
+  "integration_points": [
+    "packages/core public contract from Phase 1",
+    "scripts/*.ts legacy command locations and package.json bin entries",
+    "environment variables OPENAI_API_KEY and XAI_API_KEY"
+  ],
+  "deferred_backlog": []
+}
