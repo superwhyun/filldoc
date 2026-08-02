@@ -29,6 +29,12 @@ describe("current document-core behavior", () => {
       .resolves.toBe("meeting notes")
   })
 
+  it("rejects empty and unsupported sources", async () => {
+    await expect(extractDocumentText(new Uint8Array(), "empty.txt")).rejects.toThrow("비어있습니다")
+    await expect(extractDocumentText(Buffer.from("x"), "source.doc")).rejects.toThrow(".doc")
+    await expect(extractDocumentText(Buffer.from("x"), "source.csv")).rejects.toThrow("지원하지 않는")
+  })
+
   it("templatizes a source paragraph and exposes its placeholder", async () => {
     const source = await createDocx(["Original title"])
     const output = templatizeDocument(source, [
@@ -51,6 +57,22 @@ describe("current document-core behavior", () => {
       placeholders: [{ key: "title" }],
     })
   })
+
+  it("builds every non-AI block kind", async () => {
+    const built = await buildTemplateFromSpec({
+      templateName: "unsafe/name",
+      spec: { title: "Title", subtitle: "Sub", blocks: [
+        { type: "heading", level: 1, text: "{{heading}}" },
+        { type: "bullet_list", items: ["one"] },
+        { type: "table", header: ["Name"], rows: [["{{tasks.name}}"]] },
+        { type: "spacer", lines: 2 },
+        { type: "repeating_section", loopName: "items", blocks: [{ type: "paragraph", text: "{{name}}" }] },
+      ] },
+    })
+    expect(built.filename).toBe("unsafe-name.docx")
+    expect(inspectTemplate(built.content)).toMatchObject({ ok: true })
+  })
+
 
   it("builds repeating sections and table loops without mutating the input spec", async () => {
     const spec = {
