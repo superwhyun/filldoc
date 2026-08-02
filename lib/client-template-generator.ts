@@ -1,16 +1,12 @@
 import {
-  AlignmentType,
-  BorderStyle,
-  Document,
-  HeadingLevel,
-  Packer,
-  Paragraph,
-  Table,
-  TableCell,
-  TableRow,
-  TextRun,
-  WidthType,
-} from "docx"
+  buildTemplateFromSpec as coreBuildTemplateFromSpec,
+  type TemplateBlock,
+  type TemplateGenerationJson,
+} from "../packages/core/src/index.ts"
+
+export type { TemplateBlock, TemplateGenerationJson }
+
+const DOCX_MIME = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
 
 export type TemplateAIProvider = "openai" | "grok"
 
@@ -19,21 +15,6 @@ type GenerateTemplateInput = {
   apiKey: string
   userRequest: string
   templateName?: string
-}
-
-export type TemplateBlock =
-  | { type: "heading"; level?: 1 | 2 | 3; text: string }
-  | { type: "paragraph"; text: string }
-  | { type: "bullet_list"; items: string[] }
-  | { type: "table"; header: string[]; rows: string[][] }
-  | { type: "spacer"; lines?: number }
-  | { type: "repeating_section"; loopName: string; blocks: Array<{ type: "heading" | "paragraph"; level?: 1 | 2 | 3; text: string }> }
-
-export type TemplateGenerationJson = {
-  fileName?: string
-  title?: string
-  subtitle?: string
-  blocks: TemplateBlock[]
 }
 
 const OUTPUT_SCHEMA = {
@@ -157,12 +138,6 @@ function buildAnalyzePrompt(sourceText: string, templateName?: string) {
 ${sourceText}`
 }
 
-function normalizeFileName(name: string) {
-  const base = name.trim().replace(/[\\/:*?"<>|]/g, "-")
-  if (!base) return `ai-template-${Date.now()}.docx`
-  return base.toLowerCase().endsWith(".docx") ? base : `${base}.docx`
-}
-
 function parseGenerationJson(rawText: string): TemplateGenerationJson {
   const trimmed = rawText.trim()
   try {
@@ -179,354 +154,6 @@ function parseGenerationJson(rawText: string): TemplateGenerationJson {
     if (!Array.isArray(parsed.blocks)) throw new Error("blocks field is required")
     return parsed
   }
-}
-
-type PlaceholderUsage = {
-  key: string
-  description: string
-}
-
-function splitByPlaceholderSegments(text: string) {
-  const regex = /\{\{\s*([#\/]?)([a-zA-Z0-9_]+)(?:\s*:\s*([^}]+))?\s*\}\}/g
-  const segments: Array<{ prefix: string; key: string; description: string }> = []
-  let match: RegExpExecArray | null
-  while ((match = regex.exec(text)) !== null) {
-    segments.push({
-      prefix: match[1] || "",
-      key: match[2],
-      description: (match[3] || "").trim(),
-    })
-  }
-  return segments
-}
-
-function normalizeConflictingPlaceholderKeys(spec: TemplateGenerationJson) {
-  const textRefs: Array<{ get: () => string; set: (next: string) => void }> = []
-
-  const pushRef = (obj: any, key: string) => {
-    if (typeof obj?.[key] === "string") {
-      textRefs.push({
-        get: () => obj[key],
-        set: (next) => {
-          obj[key] = next
-        },
-      })
-    }
-  }
-
-  pushRef(spec, "title")
-  pushRef(spec, "subtitle")
-
-  for (const block of spec.blocks) {
-    if (block.type === "heading" || block.type === "paragraph") {
-      pushRef(block as any, "text")
-    }
-    if (block.type === "bullet_list") {
-      block.items.forEach((_, idx) => {
-        textRefs.push({
-          get: () => block.items[idx],
-          set: (next) => {
-            block.items[idx] = next
-          },
-        })
-      })
-    }
-    if (block.type === "table") {
-      block.header.forEach((_, idx) => {
-        textRefs.push({
-          get: () => block.header[idx],
-          set: (next) => {
-            block.header[idx] = next
-          },
-        })
-      })
-      block.rows.forEach((row, rowIdx) => {
-        row.forEach((_, cellIdx) => {
-          textRefs.push({
-            get: () => block.rows[rowIdx][cellIdx],
-            set: (next) => {
-              block.rows[rowIdx][cellIdx] = next
-            },
-          })
-        })
-      })
-    }
-    if (block.type === "repeating_section") {
-      block.blocks.forEach((innerBlock, innerIdx) => {
-        textRefs.push({
-          get: () => block.blocks[innerIdx].text,
-          set: (next) => {
-            block.blocks[innerIdx].text = next
-          },
-        })
-      })
-    }
-  }
-
-  const keyDescriptions = new Map<string, Set<string>>()
-  const usageList: PlaceholderUsage[] = []
-
-  for (const ref of textRefs) {
-    for (const segment of splitByPlaceholderSegments(ref.get())) {
-      if (segment.prefix === "#" || segment.prefix === "/") continue
-      if (!segment.description) continue
-
-      usageList.push({ key: segment.key, description: segment.description })
-      const current = keyDescriptions.get(segment.key) ?? new Set<string>()
-      current.add(segment.description)
-      keyDescriptions.set(segment.key, current)
-    }
-  }
-
-  const conflictedKeys = new Set(
-    Array.from(keyDescriptions.entries())
-      .filter(([, descriptions]) => descriptions.size > 1)
-      .map(([key]) => key),
-  )
-
-  if (conflictedKeys.size === 0) return spec
-
-  const renamedBySignature = new Map<string, string>()
-  const counterByKey = new Map<string, number>()
-  const firstDescriptionByKey = new Map<string, string>()
-
-  for (const usage of usageList) {
-    if (!conflictedKeys.has(usage.key)) continue
-
-    if (!firstDescriptionByKey.has(usage.key)) {
-      firstDescriptionByKey.set(usage.key, usage.description)
-      continue
-    }
-
-    const firstDescription = firstDescriptionByKey.get(usage.key)
-    if (firstDescription === usage.description) continue
-
-    const signature = `${usage.key}::${usage.description}`
-    if (!renamedBySignature.has(signature)) {
-      const nextCount = (counterByKey.get(usage.key) ?? 1) + 1
-      counterByKey.set(usage.key, nextCount)
-      renamedBySignature.set(signature, `${usage.key}_${nextCount}`)
-    }
-  }
-
-  for (const ref of textRefs) {
-    const replaced = ref.get().replace(
-      /\{\{\s*([#\/]?)([a-zA-Z0-9_]+)(?:\s*:\s*([^}]+))?\s*\}\}/g,
-      (raw, prefix, key, description) => {
-        const desc = String(description || "").trim()
-        if (prefix === "#" || prefix === "/") return raw
-        if (!desc) return raw
-        const renamed = renamedBySignature.get(`${key}::${desc}`)
-        if (!renamed) return raw
-        return `{{${renamed}:${desc}}}`
-      },
-    )
-    ref.set(replaced)
-  }
-
-  return spec
-}
-
-function toHeadingLevel(level?: 1 | 2 | 3): typeof HeadingLevel[keyof typeof HeadingLevel] {
-  if (level === 1) return HeadingLevel.HEADING_1
-  if (level === 3) return HeadingLevel.HEADING_3
-  return HeadingLevel.HEADING_2
-}
-
-function tableCell(text: string, isHeader = false) {
-  return new TableCell({
-    width: { size: 100 / 3, type: WidthType.PERCENTAGE },
-    margins: { top: 120, bottom: 120, left: 120, right: 120 },
-    shading: isHeader ? { fill: "F3F4F6" } : undefined,
-    children: [
-      new Paragraph({
-        spacing: { after: 0, before: 0 },
-        children: [
-          new TextRun({ text, bold: isHeader, size: isHeader ? 22 : 20 }),
-        ],
-      }),
-    ],
-  })
-}
-
-async function createStyledDocx(spec: TemplateGenerationJson) {
-  const children: Array<Paragraph | Table> = []
-
-  if (spec.title?.trim()) {
-    children.push(
-      new Paragraph({
-        alignment: AlignmentType.CENTER,
-        spacing: { after: 220 },
-        children: [new TextRun({ text: spec.title.trim(), bold: true, size: 44 })],
-      }),
-    )
-  }
-
-  if (spec.subtitle?.trim()) {
-    children.push(
-      new Paragraph({
-        alignment: AlignmentType.CENTER,
-        spacing: { after: 300 },
-        children: [new TextRun({ text: spec.subtitle.trim(), italics: true, color: "6B7280", size: 22 })],
-      }),
-    )
-  }
-
-  for (const block of spec.blocks) {
-    if (block.type === "heading") {
-      children.push(
-        new Paragraph({
-          heading: toHeadingLevel(block.level),
-          spacing: { before: 260, after: 120 },
-          children: [new TextRun({ text: block.text, bold: true })],
-        }),
-      )
-      continue
-    }
-
-    if (block.type === "paragraph") {
-      children.push(
-        new Paragraph({
-          spacing: { after: 140 },
-          children: [new TextRun({ text: block.text, size: 22 })],
-        }),
-      )
-      continue
-    }
-
-    if (block.type === "bullet_list") {
-      for (const item of block.items) {
-        children.push(
-          new Paragraph({
-            bullet: { level: 0 },
-            spacing: { after: 100 },
-            children: [new TextRun({ text: item, size: 22 })],
-          }),
-        )
-      }
-      continue
-    }
-
-    if (block.type === "table") {
-      if (block.header.length === 0) continue
-
-      const maxCols = Math.max(
-        block.header.length,
-        ...block.rows.map((row) => row.length),
-      )
-      const normalizedHeader = Array.from({ length: maxCols }, (_, i) => block.header[i] ?? "")
-      const normalizedRows = block.rows.map((row) =>
-        Array.from({ length: maxCols }, (_, i) => row[i] ?? ""),
-      )
-
-      children.push(
-        new Table({
-          width: { size: 100, type: WidthType.PERCENTAGE },
-          borders: {
-            top: { style: BorderStyle.SINGLE, size: 1, color: "D1D5DB" },
-            bottom: { style: BorderStyle.SINGLE, size: 1, color: "D1D5DB" },
-            left: { style: BorderStyle.SINGLE, size: 1, color: "D1D5DB" },
-            right: { style: BorderStyle.SINGLE, size: 1, color: "D1D5DB" },
-            insideHorizontal: { style: BorderStyle.SINGLE, size: 1, color: "E5E7EB" },
-            insideVertical: { style: BorderStyle.SINGLE, size: 1, color: "E5E7EB" },
-          },
-          rows: [
-            new TableRow({ children: normalizedHeader.map((cell) => tableCell(cell, true)) }),
-            ...normalizedRows.map((row) =>
-              new TableRow({
-                children: row.map((cell) => tableCell(cell, false)),
-              }),
-            ),
-          ],
-        }),
-      )
-
-      children.push(new Paragraph({ spacing: { after: 160 } }))
-      continue
-    }
-
-    if (block.type === "repeating_section") {
-      // {{#loopName}} / {{/loopName}}는 다른 텍스트와 절대 같은 TextRun에 섞지 않는다.
-      // 각각 독립된 Paragraph/TextRun에 담아야 docxtemplater의 loop pairing이 안전하게 동작한다.
-      children.push(
-        new Paragraph({
-          spacing: { after: 0 },
-          children: [new TextRun({ text: `{{#${block.loopName}}}`, size: 2 })],
-        }),
-      )
-
-      for (const innerBlock of block.blocks) {
-        if (innerBlock.type === "heading") {
-          children.push(
-            new Paragraph({
-              heading: toHeadingLevel(innerBlock.level),
-              spacing: { before: 200, after: 120 },
-              children: [new TextRun({ text: innerBlock.text, bold: true })],
-            }),
-          )
-        } else {
-          children.push(
-            new Paragraph({
-              spacing: { after: 140 },
-              children: [new TextRun({ text: innerBlock.text, size: 22 })],
-            }),
-          )
-        }
-      }
-
-      children.push(
-        new Paragraph({
-          spacing: { after: 160 },
-          children: [new TextRun({ text: `{{/${block.loopName}}}`, size: 2 })],
-        }),
-      )
-      continue
-    }
-
-    if (block.type === "spacer") {
-      const lines = Math.max(1, Math.min(8, Math.floor(block.lines ?? 1)))
-      for (let i = 0; i < lines; i++) {
-        children.push(new Paragraph({ spacing: { after: 120 } }))
-      }
-    }
-  }
-
-  if (children.length === 0) {
-    throw new Error("생성된 템플릿 블록이 비어있습니다.")
-  }
-
-  const doc = new Document({
-    styles: {
-      default: {
-        document: {
-          run: {
-            font: "Calibri",
-            size: 22,
-          },
-          paragraph: {
-            spacing: {
-              line: 320,
-            },
-          },
-        },
-      },
-    },
-    sections: [{
-      properties: {
-        page: {
-          margin: {
-            top: 1100,
-            right: 1100,
-            bottom: 1100,
-            left: 1100,
-          },
-        },
-      },
-      children,
-    }],
-  })
-
-  return Packer.toBlob(doc)
 }
 
 function extractOpenAIText(data: any): string {
@@ -624,6 +251,13 @@ async function generateWithGrok(apiKey: string, prompt: string) {
   return outputText
 }
 
+/** 파싱된 스펙을 core의 단일 template builder로 조립하고 File로 감싼다. */
+async function assembleFile(spec: TemplateGenerationJson, templateName: string) {
+  const built = await coreBuildTemplateFromSpec({ spec, templateName })
+  const file = new File([built.content as BlobPart], built.filename, { type: DOCX_MIME })
+  return { file, spec: built.spec }
+}
+
 export async function generateTemplateDocx(input: GenerateTemplateInput) {
   const prompt = buildPrompt(input.userRequest, input.templateName)
   const rawText =
@@ -632,15 +266,9 @@ export async function generateTemplateDocx(input: GenerateTemplateInput) {
       : await generateWithGrok(input.apiKey, prompt)
 
   const parsed = parseGenerationJson(rawText)
-  const normalized = normalizeConflictingPlaceholderKeys(parsed)
+  const templateName = input.templateName || parsed.fileName || `ai-template-${Date.now()}.docx`
 
-  const fileName = normalizeFileName(input.templateName || normalized.fileName || `ai-template-${Date.now()}.docx`)
-  const blob = await createStyledDocx(normalized)
-  const file = new File([blob], fileName, {
-    type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-  })
-
-  return { file, spec: normalized }
+  return assembleFile(parsed, templateName)
 }
 
 /**
@@ -648,14 +276,8 @@ export async function generateTemplateDocx(input: GenerateTemplateInput) {
  * 그대로 docx로 조립한다. AI 호출이 전혀 없다 — RepGen은 순수 문서 조립기 역할만 한다.
  */
 export async function buildTemplateFromSpec(spec: TemplateGenerationJson, templateName?: string) {
-  const normalized = normalizeConflictingPlaceholderKeys(spec)
-  const fileName = normalizeFileName(templateName || normalized.fileName || `template-${Date.now()}.docx`)
-  const blob = await createStyledDocx(normalized)
-  const file = new File([blob], fileName, {
-    type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-  })
-
-  return { file, spec: normalized }
+  const name = templateName || spec.fileName || `template-${Date.now()}.docx`
+  return assembleFile(spec, name)
 }
 
 type GenerateTemplateFromSampleInput = {
@@ -678,13 +300,7 @@ export async function generateTemplateFromSample(input: GenerateTemplateFromSamp
       : await generateWithGrok(input.apiKey, prompt)
 
   const parsed = parseGenerationJson(rawText)
-  const normalized = normalizeConflictingPlaceholderKeys(parsed)
+  const templateName = input.templateName || parsed.fileName || `sample-template-${Date.now()}.docx`
 
-  const fileName = normalizeFileName(input.templateName || normalized.fileName || `sample-template-${Date.now()}.docx`)
-  const blob = await createStyledDocx(normalized)
-  const file = new File([blob], fileName, {
-    type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-  })
-
-  return { file, spec: normalized }
+  return assembleFile(parsed, templateName)
 }

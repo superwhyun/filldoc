@@ -59,7 +59,7 @@
     {
       "step": 8,
       "name": "blocking-fix-single-template-builder",
-      "status": "pending",
+      "status": "completed",
       "summary": "웹과 CLI가 core의 단일 template builder를 쓰도록 중복 조립기를 제거한다"
     },
     {

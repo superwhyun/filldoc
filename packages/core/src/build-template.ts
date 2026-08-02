@@ -160,5 +160,7 @@ export async function buildTemplateFromSpec(input: { spec: TemplateGenerationJso
   if (children.length === 0) throw new Error("생성된 템플릿 블록이 비어있습니다.")
 
   const document = new Document({ styles: { default: { document: { run: { font: "Calibri", size: 22 }, paragraph: { spacing: { line: 320 } } } } }, sections: [{ properties: { page: { margin: { top: 1100, right: 1100, bottom: 1100, left: 1100 } } }, children }] })
-  return { content: new Uint8Array(await Packer.toBuffer(document)), spec, filename: normalizeFileName(input.templateName || spec.fileName || "template.docx") }
+  // toBuffer()는 JSZip의 "nodebuffer" 출력만 지원해 브라우저에서 깨진다.
+  // toArrayBuffer()는 Node와 브라우저 모두에서 지원되는 ArrayBuffer를 출력한다.
+  return { content: new Uint8Array(await Packer.toArrayBuffer(document)), spec, filename: normalizeFileName(input.templateName || spec.fileName || "template.docx") }
 }
