@@ -65,7 +65,7 @@
     {
       "step": 9,
       "name": "blocking-fix-ci-gates",
-      "status": "pending",
+      "status": "completed",
       "summary": "coverage 포함 test gate와 PDF/loop/web regression test를 추가한다"
     },
     {
