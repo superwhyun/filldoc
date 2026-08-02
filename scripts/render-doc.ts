@@ -20,6 +20,7 @@ import { readFileSync, writeFileSync } from "node:fs"
 
 import { extractPlaceholders } from "../lib/server/extract-placeholders.ts"
 import { generateDocument } from "../lib/server/generate-document.ts"
+import { validateRenderData } from "../packages/core/src/index.ts"
 
 type CliArgs = {
   template: string
@@ -117,21 +118,19 @@ function main() {
 
   const extracted = extractPlaceholders(templateBuffer)
   if (extracted.ok) {
-    const missing = extracted.placeholders.filter((p) => !(p.key in data))
+    const { missing, warnings } = validateRenderData({ inspection: extracted, data, allowPartial: args.allowPartial })
 
-    if (missing.length > 0) {
-      if (!args.allowPartial) {
-        console.error(`렌더링 중단: 템플릿에 필요한 값이 데이터에 없습니다 (${missing.length}개).`)
-        for (const p of missing) {
-          console.error(`  - ${p.key}${p.description ? ` : ${p.description}` : ""}`)
-        }
-        console.error(`사용자에게 이 값들을 물어본 뒤 다시 채워서 재실행하세요. 정말로 비워둬도 되면 --allow-partial 옵션을 추가하세요.`)
-        process.exit(1)
-      }
-
+    if (missing.length > 0 && !args.allowPartial) {
+      console.error(`렌더링 중단: 템플릿에 필요한 값이 데이터에 없습니다 (${missing.length}개).`)
       for (const p of missing) {
-        console.error(`경고: "${p.key}" 값이 데이터에 없습니다. 빈 값으로 처리됩니다.`)
+        console.error(`  - ${p.key}${p.description ? ` : ${p.description}` : ""}`)
       }
+      console.error(`사용자에게 이 값들을 물어본 뒤 다시 채워서 재실행하세요. 정말로 비워둬도 되면 --allow-partial 옵션을 추가하세요.`)
+      process.exit(1)
+    }
+
+    for (const warning of warnings) {
+      console.error(`경고: ${warning}`)
     }
   }
 

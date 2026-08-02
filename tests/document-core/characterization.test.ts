@@ -19,7 +19,7 @@ describe("current document-core behavior", () => {
 
   it("renders template data into a DOCX", async () => {
     const template = await createDocx(["{{title}}"])
-    const output = renderTemplate(template, { title: "Rendered title" })
+    const output = renderTemplate({ template, data: { title: "Rendered title" } })
 
     await expect(extractDocumentText(output, "output.docx")).resolves.toContain("Rendered title")
   })

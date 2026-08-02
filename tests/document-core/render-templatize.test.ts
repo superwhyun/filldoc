@@ -13,14 +13,14 @@ describe("renderTemplate", () => {
   it("renders nested values and replaces missing values with an empty string", async () => {
     const template = await createDocx(["Hello {{person.name}}", "Optional: {{person.title}}"])
 
-    const output = renderTemplate(template, { person: { name: "Ada" } })
+    const output = renderTemplate({ template, data: { person: { name: "Ada" } } })
 
     await expect(extractDocumentText(output, "rendered.docx")).resolves.toContain("Hello Ada")
     await expect(extractDocumentText(output, "rendered.docx")).resolves.toContain("Optional:")
   })
 
   it("rejects invalid DOCX input", () => {
-    expect(() => renderTemplate(Buffer.from("not a docx"), {})).toThrow()
+    expect(() => renderTemplate({ template: Buffer.from("not a docx"), data: {} })).toThrow()
   })
 })
 

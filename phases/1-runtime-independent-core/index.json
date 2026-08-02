@@ -53,7 +53,7 @@
     {
       "step": 7,
       "name": "blocking-fix-core-contract",
-      "status": "pending",
+      "status": "completed",
       "summary": "document-core 계약과 export를 일치시키고 strict render-data validation을 구현한다"
     },
     {

@@ -3,6 +3,7 @@ export { extractDocumentText, ExtractTextError } from "./extract-document-text.t
 export { renderTemplate } from "./render-template.ts"
 export { templatizeDocument, TemplatizeError } from "./templatize-document.ts"
 export { buildTemplateFromSpec } from "./build-template.ts"
-export type { DocumentBytes, Placeholder, TemplateInspection } from "./types.ts"
+export { validateRenderData } from "./validate-render-data.ts"
+export type { DocumentBytes, Placeholder, TemplateInspection, RenderDataValidation } from "./types.ts"
 export type { TemplatizeEdit, TemplatizeRun } from "./templatize-document.ts"
 export type { BuiltTemplate, TemplateBlock, TemplateGenerationJson } from "./build-template.ts"

@@ -113,7 +113,7 @@ templatize-document({ source, edits }) -> template.docx
 | `repgen-fill-doc` | template, sources, provider, API key | writes AI-filled DOCX, stdout processing summary | provider/credential/source failure → exit 1 | legacy provider adapter; not core |
 | `POST /api/extract-placeholders` | JSON `{ content }` | `{ placeholders, warnings? }` | invalid template 400; unexpected 500 | decode bytes, map core result to HTTP |
 | `POST /api/extract-text` | JSON `{ content, filename }` | `{ text }` | missing/unsupported source 400; unexpected 500 | decode bytes, map core error to HTTP |
-| `POST /api/generate-document` | JSON `{ templateContent, placeholders }` | DOCX attachment response | render failure 500 | decode bytes, call validate/render, stream result |
+| `POST /api/generate-document` | JSON `{ templateContent, placeholders, allowPartial? }` | DOCX attachment response | missing render data (not `allowPartial`) 400; render failure 500 | decode bytes, call `validateRenderData`, render, stream result |
 | `POST /api/fill-placeholders` | JSON `{ dataContent, placeholders, provider, apiKey }` | current fill result JSON | provider/input error status | web-only legacy provider adapter; core is not called with credential |
 
 Existing `generateTemplateDocx` and `generateTemplateFromSample` are web/provider consumers. Their non-AI document assembly portion will become `buildTemplateFromSpec`; their `File`/`Blob` conversion remains outside core.

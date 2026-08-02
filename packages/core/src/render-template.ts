@@ -85,7 +85,8 @@ function preProcessXml(xml: string): string {
  * 템플릿 docx 버퍼와 { key: value } 형태의 placeholder 데이터를 받아
  * 채워진 docx 버퍼를 반환한다.
  */
-export function renderTemplate(templateContent: DocumentBytes, placeholders: Record<string, unknown>): DocumentBytes {
+export function renderTemplate(input: { template: DocumentBytes; data: Record<string, unknown> }): DocumentBytes {
+  const { template: templateContent, data: placeholders } = input
   const zip = new PizZip(templateContent)
 
   // --- XML Pre-processing ---

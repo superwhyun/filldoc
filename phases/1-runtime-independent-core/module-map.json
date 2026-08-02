@@ -23,7 +23,8 @@
         3,
         4,
         5,
-        6
+        6,
+        7
       ],
       "phase_status": "implemented"
     }
@@ -34,5 +35,7 @@
     "lib/client-template-generator.ts",
     "scripts/*.ts and app/api/* are consumers only; neither owns document rules after this phase"
   ],
-  "deferred_backlog": []
+  "deferred_backlog": [
+    "MODULE.md의 typed error code 표(INVALID_TEMPLATE, INVALID_RENDER_DATA 등)는 아직 core 구현에 없다. 현재는 docxtemplater/일반 Error가 그대로 던져진다. 별도 contract-change step으로 다뤄야 한다."
+  ]
 }

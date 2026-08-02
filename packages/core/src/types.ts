@@ -10,3 +10,8 @@ export type Placeholder = {
 export type TemplateInspection =
   | { ok: true; placeholders: Placeholder[]; warnings?: string[] }
   | { ok: false; error: string; validations: string[]; warnings?: string[] }
+
+export type RenderDataValidation = {
+  missing: Placeholder[]
+  warnings: string[]
+}
