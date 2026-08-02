@@ -10,6 +10,7 @@ node_modules
 # production
 /build
 /coverage
+apps/cli/dist
 
 # debug
 npm-debug.log*

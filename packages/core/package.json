@@ -3,6 +3,9 @@
   "private": true,
   "type": "module",
   "exports": "./src/index.ts",
+  "engines": {
+    "node": ">=22"
+  },
   "dependencies": {
     "docx": "^9.6.0",
     "docxtemplater": "latest",

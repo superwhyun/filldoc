@@ -2,14 +2,37 @@
   "name": "@repgen/cli",
   "version": "0.1.0",
   "type": "module",
+  "description": "RepGen CLI — 템플릿 분석/렌더링/템플릿화를 브라우저/Next 서버 없이 실행하는 독립 명령들",
+  "license": "UNLICENSED",
+  "engines": {
+    "node": ">=22"
+  },
+  "files": [
+    "dist"
+  ],
   "bin": {
-    "repgen": "./src/repgen.ts",
-    "repgen-extract-doc": "./src/extract-doc.ts",
-    "repgen-extract-text": "./src/extract-text.ts",
-    "repgen-render-doc": "./src/render-doc.ts",
-    "repgen-templatize-doc": "./src/templatize-doc.ts",
-    "repgen-build-template": "./src/build-template.ts",
-    "repgen-fill-doc": "./src/fill-doc.ts",
-    "repgen-analyze-doc": "./src/analyze-doc.ts"
+    "repgen": "./dist/repgen.js",
+    "repgen-extract-doc": "./dist/extract-doc.js",
+    "repgen-extract-text": "./dist/extract-text.js",
+    "repgen-render-doc": "./dist/render-doc.js",
+    "repgen-templatize-doc": "./dist/templatize-doc.js",
+    "repgen-build-template": "./dist/build-template.js",
+    "repgen-fill-doc": "./dist/fill-doc.js",
+    "repgen-analyze-doc": "./dist/analyze-doc.js"
+  },
+  "scripts": {
+    "build": "node build.mjs"
+  },
+  "dependencies": {
+    "@ai-sdk/xai": "latest",
+    "ai": "latest",
+    "docx": "^9.6.0",
+    "docxtemplater": "latest",
+    "openai": "^4.77.0",
+    "pdf-parse": "^2.4.5",
+    "pizzip": "latest"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.1"
   }
 }
