@@ -17,7 +17,7 @@
     {
       "step": 1,
       "name": "core-extraction",
-      "status": "pending",
+      "status": "completed",
       "summary": "문서 처리의 단일 구현을 packages/core로 이동하고, Node Buffer/Uint8Array 기반 API로 소비자 import를 전환한다"
     },
     {

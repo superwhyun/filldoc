@@ -24,7 +24,7 @@
  */
 import { readFileSync, writeFileSync } from "node:fs"
 
-import { buildTemplateFromSpec, type TemplateGenerationJson } from "../lib/client-template-generator.ts"
+import { buildTemplateFromSpec, type TemplateGenerationJson } from "../packages/core/src/index.ts"
 import { extractPlaceholders } from "../lib/server/extract-placeholders.ts"
 
 type CliArgs = {
@@ -95,8 +95,8 @@ async function main() {
   const args = parseArgs(process.argv.slice(2))
   const spec = loadSpec(args)
 
-  const { file } = await buildTemplateFromSpec(spec, args.templateName)
-  const outputBuffer = Buffer.from(await file.arrayBuffer())
+  const { content } = await buildTemplateFromSpec({ spec, templateName: args.templateName })
+  const outputBuffer = Buffer.from(content)
   writeFileSync(args.output, outputBuffer)
 
   const validation = extractPlaceholders(outputBuffer)
