@@ -17,7 +17,7 @@
     {
       "step": 1,
       "name": "cli-migration",
-      "status": "pending",
+      "status": "completed",
       "summary": "모든 repgen-* 명령을 core 호출만 담당하는 파일시스템/환경변수 어댑터로 전환한다"
     },
     {

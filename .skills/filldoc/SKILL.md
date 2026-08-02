@@ -59,6 +59,21 @@ Before finishing, confirm:
 - `repgen-build-template` — 예시 문서 없이 템플릿 스펙(JSON)만으로 docx를 새로 조립 (AI 키 불필요)
 - `repgen-analyze-doc` — 예시 문서를 RepGen 자체 AI에 통째로 넘겨 템플릿 생성 (OpenAI/Grok 키 필요, 보통 안 씀)
 
+모든 명령이 공유하는 unified alias `repgen <subcommand> [...args]`도 있다 (예: `repgen extract-doc --template ...`).
+`repgen --version`으로 버전만 확인할 수도 있다.
+
+### 오류 처리 (exit code)
+
+성공은 항상 exit `0`이고, 성공 결과 JSON은 stdout에만 출력된다. 실패는 원인에 따라 exit code가 갈린다 (자세한 표는 `docs/modules/cli-surface/MODULE.md` 참고):
+
+| code | 의미 | 예시 |
+| --- | --- | --- |
+| `2` | 인자 누락/오형식, 지정한 입력 파일을 찾거나 읽을 수 없음 | `--template` 누락, 파일 경로 오타 |
+| `3` | 처리 오류 | 템플릿 문법 오류, 렌더링에 필요한 값 누락(`--allow-partial` 없이), edit target 미발견, JSON 파싱 실패 |
+| `4` | provider/credential 오류 (`fill-doc`/`analyze-doc`만 해당) | API 키 없음/오류 |
+
+오류 메시지는 항상 stderr에 `오류: <메시지>` 형태로 출력된다. 스크립트에서 결과를 파싱할 때는 stdout만 읽으면 된다.
+
 ### 설치 (새 환경, 권장)
 
 저장소를 직접 clone할 필요 없이 GitHub에서 바로 전역 설치한다 (npm publish 없이 git 소스로 설치):
@@ -197,7 +212,7 @@ repgen-render-doc \
 
 - `render-doc`의 데이터 형식: 일반 placeholder는 문자열, loop(`isLoop: true`) placeholder는 `fields`를 key로 갖는 객체의 배열.
 - `--data-json` 대신 `--data <values.json 경로>`로 파일을 넘겨도 된다 (값이 길거나 이스케이핑이 걱정되면 이쪽을 권장).
-- **템플릿이 요구하는 key인데 데이터에 없으면 기본적으로 렌더링하지 않고 exit code 1로 중단한다** (어떤 key가 빠졌는지 stderr에 나열). 이건 "이 값을 모른다"는 신호이니, 사용자에게 물어본 뒤 값을 채워서 다시 호출한다. 정말로 비워둬도 되는 경우에만 `--allow-partial`을 추가해서 빈 값으로 진행한다.
+- **템플릿이 요구하는 key인데 데이터에 없으면 기본적으로 렌더링하지 않고 exit code 3으로 중단한다** (어떤 key가 빠졌는지 stderr에 나열). 이건 "이 값을 모른다"는 신호이니, 사용자에게 물어본 뒤 값을 채워서 다시 호출한다. 정말로 비워둬도 되는 경우에만 `--allow-partial`을 추가해서 빈 값으로 진행한다.
 - 성공 시 stdout에 `{ output, filledKeys }` JSON을 출력.
 
 ### 2) RepGen 자체 AI 호출로 채울 때 (원본 자료를 그대로 넘기고 싶을 때)
@@ -219,7 +234,7 @@ OPENAI_API_KEY=sk-... repgen-fill-doc \
 - `--provider` : `openai`(기본값) 또는 `grok`
 - `--api-key` : 생략 시 `OPENAI_API_KEY`(openai) / `XAI_API_KEY`(grok) 환경변수 사용
 
-성공 시 stdout에 `{ output, provider, usedFileSearch, usedFallback, evidenceCount, placeholderCount, unresolvedKeys }` 형태의 JSON 요약을 출력한다. 실패 시 exit code 1과 함께 원인 메시지를 stderr에 출력한다(템플릿 문법 오류, 데이터 파일 읽기 실패, API 키 누락/오류 등 웹 API와 동일한 메시지 체계).
+성공 시 stdout에 `{ output, provider, usedFileSearch, usedFallback, evidenceCount, placeholderCount, unresolvedKeys }` 형태의 JSON 요약을 출력한다. 실패 시 원인 메시지를 stderr에 출력하고 원인별 exit code로 종료한다: 인자/파일 경로 오류는 `2`, 템플릿 문법 오류 등 처리 오류는 `3`, API 키 누락/오류는 `4`.
 
 **`unresolvedKeys`**: AI가 근거 자료에서 값을 찾지 못한 필드 목록(빈 값으로 채워짐, 지어내지 않음). 이 목록이 비어있지 않으면, 그 값들을 사용자에게 물어본 뒤 `render-doc`으로 해당 key만 다시 채워 넣는다(전체를 `data-json`에 담아 `render-doc`을 재호출하면 됨).
 

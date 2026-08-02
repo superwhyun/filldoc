@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "bin": {
+    "repgen": "./apps/cli/src/repgen.ts",
     "repgen-extract-doc": "./scripts/extract-doc.ts",
     "repgen-render-doc": "./scripts/render-doc.ts",
     "repgen-fill-doc": "./scripts/fill-doc.ts",

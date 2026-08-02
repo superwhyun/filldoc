@@ -1,0 +1,15 @@
+{
+  "name": "@repgen/cli",
+  "version": "0.1.0",
+  "type": "module",
+  "bin": {
+    "repgen": "./src/repgen.ts",
+    "repgen-extract-doc": "./src/extract-doc.ts",
+    "repgen-extract-text": "./src/extract-text.ts",
+    "repgen-render-doc": "./src/render-doc.ts",
+    "repgen-templatize-doc": "./src/templatize-doc.ts",
+    "repgen-build-template": "./src/build-template.ts",
+    "repgen-fill-doc": "./src/fill-doc.ts",
+    "repgen-analyze-doc": "./src/analyze-doc.ts"
+  }
+}

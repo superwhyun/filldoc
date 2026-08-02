@@ -23,7 +23,7 @@
         3,
         4
       ],
-      "phase_status": "contract-fixed"
+      "phase_status": "cli-migrated"
     }
   ],
   "integration_points": [
