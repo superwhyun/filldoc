@@ -37,6 +37,13 @@
       "name": "phase-close",
       "status": "pending",
       "summary": "CLI 배포 검증 결과와 Phase 3이 소비할 web-independent 계약을 baseline으로 남긴다"
+    },
+    {
+      "step": 5,
+      "name": "review-fix-repgen-error-handling",
+      "kind": "review-fix",
+      "status": "completed",
+      "summary": "Phase 리뷰 게이트 1회차에서 발견: apps/cli/src/repgen.ts의 main()이 runCli()로 감싸이지 않아 예상치 못한 오류 시 raw stack trace와 잘못된 exit code(1)가 나오던 문제를 수정한다"
     }
   ]
 }

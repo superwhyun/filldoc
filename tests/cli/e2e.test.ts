@@ -179,6 +179,15 @@ describe("CLI E2E — packed dist, repository 밖 work directory", () => {
     expect(result.stdout.trim()).toBe(pkg.version)
   })
 
+  it("repgen unified alias의 자체 오류(알 수 없는 명령)도 계약된 exit code와 stderr 형식을 따른다", () => {
+    const result = run("repgen", ["bogus-command"])
+    expect(result.status).toBe(2)
+    expect(result.stdout).toBe("")
+    expect(result.stderr).toContain("오류: 알 수 없는 명령입니다: bogus-command")
+    // repgen.ts의 main()이 runCli()로 감싸이지 않으면 raw stack trace가 나온다 — 회귀 방지.
+    expect(result.stderr).not.toContain("at ")
+  })
+
   it("fill-doc/analyze-doc: API 키 없이 provider 오류 exit code(4)를 반환한다 (네트워크 호출 없음)", () => {
     writeFileSync(join(workDir, "t.docx"), Buffer.from("placeholder"))
 

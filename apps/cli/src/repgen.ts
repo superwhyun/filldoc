@@ -12,6 +12,8 @@ import { readFileSync } from "node:fs"
 import { dirname, join } from "node:path"
 import { fileURLToPath } from "node:url"
 
+import { CliUsageError, runCli } from "./lib/cli-support.ts"
+
 const COMMANDS = [
   "extract-doc",
   "extract-text",
@@ -47,8 +49,7 @@ async function main() {
 
   if (!(COMMANDS as readonly string[]).includes(sub)) {
     printUsage()
-    console.error(`오류: 알 수 없는 명령입니다: ${sub}`)
-    process.exit(2)
+    throw new CliUsageError(`알 수 없는 명령입니다: ${sub}`)
   }
 
   // 대상 명령 모듈은 로드되는 즉시 process.argv.slice(2)를 읽고 스스로 실행/종료한다.
@@ -65,4 +66,4 @@ async function main() {
   }
 }
 
-main()
+runCli(main)
