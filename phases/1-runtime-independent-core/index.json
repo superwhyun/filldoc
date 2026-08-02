@@ -71,7 +71,7 @@
     {
       "step": 10,
       "name": "phase-reclose",
-      "status": "pending",
+      "status": "completed",
       "summary": "리뷰 보정 검증과 baseline 갱신 후 Phase 1을 다시 마감한다"
     }
   ]

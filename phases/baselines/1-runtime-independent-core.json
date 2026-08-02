@@ -3,23 +3,50 @@
   "phase": "1-runtime-independent-core",
   "tag": "RepGen-phase1-done",
   "source_module_map": "phases/1-runtime-independent-core/module-map.json",
-  "modules": [{
-    "name": "document-core",
-    "doc": "docs/modules/document-core/MODULE.md",
-    "public_exports": [
-      "packages/core/src: inspectTemplate, extractDocumentText, renderTemplate, templatizeDocument, buildTemplateFromSpec",
-      "lib/server/* compatibility re-exports preserve existing CLI and web imports"
-    ]
-  }],
+  "modules": [
+    {
+      "name": "document-core",
+      "doc": "docs/modules/document-core/MODULE.md",
+      "public_exports": [
+        "packages/core/src/index.ts: inspectTemplate(template: DocumentBytes): TemplateInspection",
+        "packages/core/src/index.ts: extractDocumentText(input: { content, filename }): Promise<string>, ExtractTextError",
+        "packages/core/src/index.ts: renderTemplate(input: { template, data }): DocumentBytes — single canonical object-form signature, no legacy positional overload",
+        "packages/core/src/index.ts: templatizeDocument(input: { source, edits }): DocumentBytes, TemplatizeError",
+        "packages/core/src/index.ts: buildTemplateFromSpec(input: { spec, templateName? }): Promise<BuiltTemplate> — Packer.toArrayBuffer 기반, Node/브라우저 공통 실행 가능",
+        "packages/core/src/index.ts: validateRenderData(input: { inspection, data, allowPartial? }): { missing, warnings } — CLI(scripts/render-doc.ts)와 web(app/api/generate-document)이 공통으로 사용",
+        "packages/core/src/index.ts: type DocumentBytes/Placeholder/TemplateInspection/RenderDataValidation/TemplatizeEdit/TemplatizeRun/BuiltTemplate/TemplateBlock/TemplateGenerationJson",
+        "lib/server/{extract-placeholders,generate-document,validate-render-data}.ts — 기존 CLI/web import 경로를 보존하는 재노출 wrapper"
+      ]
+    }
+  ],
+  "routes": [
+    "POST /api/extract-placeholders — JSON { content } -> { placeholders, warnings? } (200) / { error, validations, warnings } (400)",
+    "POST /api/extract-text — JSON { content, filename } -> { text } (200) / error (400/500)",
+    "POST /api/generate-document — JSON { templateContent, placeholders, allowPartial? } -> DOCX attachment (200) / { error, missing } (400, 누락 render data) / { error, details } (500, render 실패)",
+    "GET /api/templates, GET /api/templates/[filename] — 파일시스템 템플릿 목록/다운로드, document-core와 무관"
+  ],
+  "shared_contracts": [
+    "docs/modules/document-core/MODULE.md",
+    "lib/client-template-generator.ts — AI 프롬프트/provider 호출만 담당하는 얇은 어댑터, DOCX 조립은 packages/core/src/build-template.ts 단일 구현에 위임"
+  ],
+  "integration_points": [
+    "lib/server/{extract-placeholders,generate-document,extract-text,templatize-document}.ts, lib/server/validate-render-data.ts",
+    "lib/server/fill-placeholders.ts는 여전히 legacy optional provider consumer, document-core 아님",
+    "scripts/*.ts (repgen-* CLI)와 app/api/*는 core의 consumer일 뿐 문서 규칙을 소유하지 않음",
+    "pnpm-workspace.yaml packages: [\"packages/*\", \"apps/*\"] — packages/core가 실제 pnpm workspace project (apps/*는 Phase 2/3에서 채워짐)"
+  ],
   "verification": {
-    "tests": "24 passing",
-    "coverage": "80.29% global lines/statements, 84.73% branches, 81.08% functions",
-    "typecheck": "passed",
-    "lint": "0 errors; existing warnings only"
+    "tests": "36 passing (7 files) — validate-render-data, PDF 추출, 표 dot-loop 렌더링, web adapter(app/api/generate-document) 200/400/allowPartial 회귀 포함",
+    "coverage": "packages/core/src 전체: lines 88.38%, branches 84.21%, functions 81.57%, statements 88.38% (pnpm test 기본 실행 시 강제, 80% threshold 하회 시 실패)",
+    "typecheck": "passed (pnpm exec tsc --noEmit --pretty false)",
+    "lint": "0 errors (pnpm lint) — coverage/ 생성 파일과 eslint.config.mjs의 기존 warning만 존재"
   },
   "known_issues": [
-    "pnpm install reports ignored build scripts for esbuild/sharp/unrs-resolver; no core test is affected.",
-    "package-lock.json is an existing user change and remains untouched; pnpm-lock.yaml is now the local test lockfile."
+    "MODULE.md에 문서화된 typed error code 표(INVALID_TEMPLATE, INVALID_RENDER_DATA 등)는 아직 구현되지 않음 — docxtemplater/일반 Error가 그대로 던져진다. 별도 contract-change step 필요 (module-map.json deferred_backlog에 기록됨).",
+    "루트에 package-lock.json(npm)과 pnpm-lock.yaml이 공존한다. pnpm이 실제 사용 패키지 매니저이고 package-lock.json은 pnpm 도입 이전의 leftover로 보이나, 이번 phase 범위 밖이라 제거하지 않았다.",
+    "Phase 0의 generateTemplateFromSample/repgen-analyze-doc 경로는 여전히 실제 API 키로 라이브 검증되지 않았다 (환경에 키 없음). buildTemplateFromSpec 파이프라인 공유로 위험은 낮음.",
+    "pnpm-workspace.yaml의 apps/* glob은 아직 대상 디렉터리가 없다 (Phase 2 cli-product-surface, Phase 3 web-adapter에서 채워질 예정).",
+    "pnpm install 시 esbuild/sharp/unrs-resolver의 build script가 allowBuilds 설정(true/false/false)에 따라 처리된다 — core 테스트에는 영향 없음."
   ],
   "written_at": "2026-08-03"
 }
