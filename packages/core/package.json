@@ -2,5 +2,11 @@
   "name": "@repgen/core",
   "private": true,
   "type": "module",
-  "exports": "./src/index.ts"
+  "exports": "./src/index.ts",
+  "dependencies": {
+    "docx": "^9.6.0",
+    "docxtemplater": "latest",
+    "pdf-parse": "^2.4.5",
+    "pizzip": "latest"
+  }
 }

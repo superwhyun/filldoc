@@ -43,6 +43,36 @@
       "name": "blocking-fix-heading-level-typecheck",
       "status": "completed",
       "summary": "core 추출 대상의 기존 HeadingLevel 타입 오류를 최소 수정으로 해소하고 Step 4 검증을 재개한다"
+    },
+    {
+      "step": 6,
+      "name": "blocking-fix-workspace-package",
+      "status": "completed",
+      "summary": "pnpm workspace와 @repgen/core runtime dependency/export를 실제 설치 가능한 패키지로 보정한다"
+    },
+    {
+      "step": 7,
+      "name": "blocking-fix-core-contract",
+      "status": "pending",
+      "summary": "document-core 계약과 export를 일치시키고 strict render-data validation을 구현한다"
+    },
+    {
+      "step": 8,
+      "name": "blocking-fix-single-template-builder",
+      "status": "pending",
+      "summary": "웹과 CLI가 core의 단일 template builder를 쓰도록 중복 조립기를 제거한다"
+    },
+    {
+      "step": 9,
+      "name": "blocking-fix-ci-gates",
+      "status": "pending",
+      "summary": "coverage 포함 test gate와 PDF/loop/web regression test를 추가한다"
+    },
+    {
+      "step": 10,
+      "name": "phase-reclose",
+      "status": "pending",
+      "summary": "리뷰 보정 검증과 baseline 갱신 후 Phase 1을 다시 마감한다"
     }
   ]
 }
