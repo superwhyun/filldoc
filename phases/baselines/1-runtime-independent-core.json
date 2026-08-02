@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "phase": "1-runtime-independent-core",
+  "tag": "RepGen-phase1-done",
+  "source_module_map": "phases/1-runtime-independent-core/module-map.json",
+  "modules": [{
+    "name": "document-core",
+    "doc": "docs/modules/document-core/MODULE.md",
+    "public_exports": [
+      "packages/core/src: inspectTemplate, extractDocumentText, renderTemplate, templatizeDocument, buildTemplateFromSpec",
+      "lib/server/* compatibility re-exports preserve existing CLI and web imports"
+    ]
+  }],
+  "verification": {
+    "tests": "24 passing",
+    "coverage": "80.29% global lines/statements, 84.73% branches, 81.08% functions",
+    "typecheck": "passed",
+    "lint": "0 errors; existing warnings only"
+  },
+  "known_issues": [
+    "pnpm install reports ignored build scripts for esbuild/sharp/unrs-resolver; no core test is affected.",
+    "package-lock.json is an existing user change and remains untouched; pnpm-lock.yaml is now the local test lockfile."
+  ],
+  "written_at": "2026-08-03"
+}

@@ -9,7 +9,7 @@
     {
       "dir": "1-runtime-independent-core",
       "name": "runtime-independent-core",
-      "status": "pending",
+      "status": "completed",
       "description": "문서 처리와 AI provider 경계를 Node 런타임 독립 core 계약으로 확정하고, 중복 없는 단일 구현 및 회귀 테스트를 만든다"
     },
     {

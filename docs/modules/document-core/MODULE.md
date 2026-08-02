@@ -1,10 +1,10 @@
 ---
 id: document-core
-version: 1.0.0
+version: 1.1.0
 parent: none
 persona: document-core
-status: planned
-contract_version: 1.0.0
+status: implemented
+contract_version: 1.1.0
 ---
 
 # document-core

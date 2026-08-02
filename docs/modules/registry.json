@@ -12,8 +12,8 @@
     },
     "document-core": {
       "persona": "document-core",
-      "version": "1.0.0",
-      "status": "planned",
+      "version": "1.1.0",
+      "status": "implemented",
       "children": [],
       "module_doc": "docs/modules/document-core/MODULE.md"
     }

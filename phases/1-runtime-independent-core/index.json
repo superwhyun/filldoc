@@ -29,7 +29,7 @@
     {
       "step": 3,
       "name": "phase-close",
-      "status": "pending",
+      "status": "completed",
       "summary": "lint/typecheck/test를 통과시키고 core baseline과 다음 phase용 public contract를 기록한다"
     },
     {
