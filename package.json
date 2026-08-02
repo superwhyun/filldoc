@@ -23,7 +23,8 @@
     "analyze-doc": "tsx scripts/analyze-doc.ts",
     "extract-text": "tsx scripts/extract-text.ts",
     "build-template": "tsx scripts/build-template.ts",
-    "templatize-doc": "tsx scripts/templatize-doc.ts"
+    "templatize-doc": "tsx scripts/templatize-doc.ts",
+    "test": "vitest run"
   },
   "dependencies": {
     "@ai-sdk/openai": "latest",
@@ -98,6 +99,7 @@
     "tailwindcss": "^4.1.9",
     "tsx": "^4.19.2",
     "tw-animate-css": "1.3.3",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^3.2.7"
   }
 }

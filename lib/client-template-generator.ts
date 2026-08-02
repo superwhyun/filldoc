@@ -327,7 +327,7 @@ function normalizeConflictingPlaceholderKeys(spec: TemplateGenerationJson) {
   return spec
 }
 
-function toHeadingLevel(level?: 1 | 2 | 3): HeadingLevel {
+function toHeadingLevel(level?: 1 | 2 | 3): typeof HeadingLevel[keyof typeof HeadingLevel] {
   if (level === 1) return HeadingLevel.HEADING_1
   if (level === 3) return HeadingLevel.HEADING_3
   return HeadingLevel.HEADING_2

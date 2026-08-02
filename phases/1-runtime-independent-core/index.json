@@ -31,6 +31,18 @@
       "name": "phase-close",
       "status": "pending",
       "summary": "lint/typecheck/test를 통과시키고 core baseline과 다음 phase용 public contract를 기록한다"
+    },
+    {
+      "step": 4,
+      "name": "blocking-fix-test-foundation",
+      "status": "completed",
+      "summary": "core 추출 전에 Vitest와 최소 characterization fixture를 추가해 TDD 검증 기반을 만든 뒤 Step 1을 pending으로 복구한다"
+    },
+    {
+      "step": 5,
+      "name": "blocking-fix-heading-level-typecheck",
+      "status": "completed",
+      "summary": "core 추출 대상의 기존 HeadingLevel 타입 오류를 최소 수정으로 해소하고 Step 4 검증을 재개한다"
     }
   ]
 }
