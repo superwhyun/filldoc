@@ -1,5 +1,10 @@
 # Step 5: review-fix-repgen-error-handling
 
+## 읽어야 할 파일
+
+- `apps/cli/src/repgen.ts`, `apps/cli/src/lib/cli-support.ts`
+- `apps/cli/src/extract-doc.ts` (다른 명령 파일의 `runCli()` 사용 패턴 참고)
+
 ## 배경
 
 Phase 2 리뷰 게이트 1회차(`framework/docs/REVIEW.md` 워크플로우, `RepGen-phase1-done..HEAD` diff 대상)에서 발견:
@@ -15,6 +20,10 @@ Phase 2 리뷰 게이트 1회차(`framework/docs/REVIEW.md` 워크플로우, `Re
 - owned_paths: `apps/cli/src/repgen.ts`, `tests/cli/e2e.test.ts`
 - forbidden_paths: 다른 6개 명령 파일(이미 `runCli()` 사용 중, 변경 불필요)
 
+## 계약 및 베이스라인
+
+- 나머지 6개 명령 파일이 이미 지키고 있는 계약(성공은 stdout JSON/exit 0, 실패는 stderr `오류: <메시지>`/exit 2·3·4)을 `repgen.ts`에도 동일하게 적용한다. 새로운 계약을 만들지 않는다.
+
 ## 작업
 
 1. `repgen.ts`에 `CliUsageError`/`runCli`를 `./lib/cli-support.ts`에서 import.
@@ -26,6 +35,12 @@ Phase 2 리뷰 게이트 1회차(`framework/docs/REVIEW.md` 워크플로우, `Re
 
 - [ ] `apps/cli/dist/repgen.js bogus-command` 실행 시 exit code `2`, stderr에 `오류:` 접두사가 붙은 메시지만 출력되고 raw stack trace가 없다.
 - [ ] `pnpm test`(coverage 포함), `pnpm exec tsc --noEmit --pretty false`, `pnpm lint` 모두 통과한다.
+
+## 검증 절차
+
+1. `apps/cli/build.mjs`로 재빌드한다.
+2. `node apps/cli/dist/repgen.js bogus-command`를 직접 실행해 exit code와 stderr 형식을 확인한다.
+3. `pnpm test`, `pnpm exec tsc --noEmit --pretty false`, `pnpm lint`를 실행한다.
 
 ## 검증 결과
 

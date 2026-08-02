@@ -1,0 +1,73 @@
+{
+  "schema_version": 1,
+  "phase": "2-cli-product-surface",
+  "tag": "RepGen-phase2-done",
+  "source_module_map": "phases/2-cli-product-surface/module-map.json",
+  "modules": [
+    {
+      "name": "cli-surface",
+      "doc": "docs/modules/cli-surface/MODULE.md",
+      "public_exports": [
+        "apps/cli/src/{extract-doc,extract-text,render-doc,templatize-doc,build-template,fill-doc,analyze-doc}.ts — 7개 repgen-* 명령의 실제 구현. core public API(packages/core/src/index.ts)와 lib/server/*, lib/client-template-generator.ts만 import",
+        "apps/cli/src/repgen.ts — unified alias (`repgen --version`, `repgen --help`, `repgen <subcommand> [...args]`)",
+        "apps/cli/src/lib/cli-support.ts — CliUsageError(exit 2)/CliProcessingError(exit 3)/CliProviderError(exit 4)/runCli()",
+        "apps/cli/package.json (@repgen/cli) — pnpm pack 가능한 독립 패키지, dist/*.js가 bin, dependencies는 docx/docxtemplater/pizzip/pdf-parse/openai/@ai-sdk/xai/ai만 (Next/React/UI 없음)",
+        "apps/cli/build.mjs — esbuild로 monorepo-internal 소스만 번들링하고 진짜 npm 의존성은 external로 남김",
+        "scripts/*.ts (7개) — apps/cli/src/<name>.ts를 import만 하는 1줄 thin wrapper, 기존 명령 이름/위치/root package.json bin 매핑 그대로 유지",
+        "root package.json bin.repgen — apps/cli/src/repgen.ts(dev 경로) unified alias 노출"
+      ]
+    }
+  ],
+  "cli_contract": {
+    "commands": [
+      "repgen-extract-doc --template <.docx>",
+      "repgen-extract-text --file <.docx|.pdf|.txt|.md>",
+      "repgen-render-doc --template --data|--data-json|stdin --output [--allow-partial]",
+      "repgen-templatize-doc --source --edits|--edits-json --output",
+      "repgen-build-template --spec|--spec-json --output [--template-name]",
+      "repgen-fill-doc --template --data --output [--provider] [--api-key] (legacy, AI 키 필요)",
+      "repgen-analyze-doc --source --output [--provider] [--api-key] [--template-name] (legacy, AI 키 필요)",
+      "repgen <subcommand> [...args] / repgen --version (unified alias)"
+    ],
+    "exit_codes": {
+      "0": "성공",
+      "2": "인자 누락/오형식, 지정한 입력 파일을 찾거나 읽을 수 없음",
+      "3": "처리 오류 (템플릿 문법 오류, 렌더링 필요 값 누락, edit target 미발견, JSON 파싱 실패 등)",
+      "4": "provider/credential 오류 (fill-doc/analyze-doc만 해당)"
+    },
+    "stdout_contract": "성공 결과는 stdout에 JSON(extract-text만 순수 텍스트)만 출력. 진단/경고/오류는 stderr에만 `오류: <메시지>` 형태로 출력.",
+    "help_and_version": "모든 명령이 --help 지원 (exit 0, printUsage를 stdout에 출력). `repgen --version`이 패키지 버전을 stdout에 출력."
+  },
+  "package_boundary": {
+    "workspace_member": "apps/cli (pnpm-workspace.yaml packages: [\"packages/*\", \"apps/*\"]에 이미 포함되어 있던 apps/* glob으로 자동 인식)",
+    "pack_verified": "pnpm --filter @repgen/cli pack → tarball에 dist/*.js(8개) + package.json만 포함, Next/React/UI 의존성·repo 소스 없음. 깨끗한 임시 프로젝트에 npm install 후 repgen --version/repgen-extract-doc/repgen-build-template 정상 실행 확인.",
+    "lockfile": "루트의 legacy npm package-lock.json 제거. pnpm-lock.yaml이 유일한 lockfile. `pnpm install --frozen-lockfile` 통과 확인.",
+    "engines": "root, packages/core, apps/cli 모두 engines.node >= 22 명시."
+  },
+  "phase3_adapter_inputs": [
+    "web-adapter(Phase 3)는 이 baseline의 exit code 정책(2/3/4)과 동일한 에러 분류 원칙을 HTTP status mapping에 참고할 수 있다.",
+    "app/api/generate-document는 이미 Phase 1에서 core의 validateRenderData를 사용하도록 연결되어 있다 — CLI의 render-doc과 동일한 strict/allowPartial 정책을 공유한다.",
+    "lib/client-template-generator.ts와 lib/server/fill-placeholders.ts(legacy AI provider 호출)는 이번 phase에서 위치를 옮기지 않았다. Phase 3에서 웹 UI가 이 어댑터들을 어떻게 재구성할지 결정해야 한다.",
+    "BYOK: CLI는 이미 --api-key 플래그(요청 단위 키, env fallback)로 BYOK 패턴을 구현하고 있다. Phase 3의 web BYOK 설계는 이 우선순위(명시적 인자 > env > 오류)를 그대로 참고할 수 있다."
+  ],
+  "legacy_wrapper_removal_condition": "scripts/*.ts 7개 thin wrapper와 root package.json의 repgen-* bin 매핑은 이번 phase에서 제거하지 않았다. 제거는 (1) 모든 실사용 진입점(문서, .skills/filldoc/SKILL.md, 외부 설치 가이드)이 apps/cli 패키지 설치 경로로 완전히 전환됐다는 증거와 (2) 그 경로에 대한 import/bundle/e2e 검증이 있을 때만 허용한다 — 지금은 그런 증거가 없으므로 유지.",
+  "verification": {
+    "tests": "45 passing (8 files) — packages/core characterization/regression(28) + web adapter route(3) + CLI E2E(9, packed dist를 저장소 밖 work directory에서 spawn, repgen alias 자체 오류 처리 회귀 테스트 포함) + lib wrapper(3)",
+    "coverage": "packages/core/src 전체: lines 88.38%, branches 84.21%, functions 81.57%, statements 88.38% (80% threshold 강제, Phase 1과 동일 — 이번 phase는 core 로직을 바꾸지 않음)",
+    "typecheck": "passed (pnpm exec tsc --noEmit --pretty false)",
+    "lint": "0 errors (pnpm lint)",
+    "pack_and_install": "pnpm --filter @repgen/cli pack + 깨끗한 임시 프로젝트 npm install + repgen --version/extract-doc/build-template 실행 확인 (Step 2)",
+    "next_build": "pnpm build(Next production build) 여전히 성공 — 패키지 경계 변경이 web 빌드에 영향 없음"
+  },
+  "review_gate": {
+    "rounds": 2,
+    "round1_finding": "apps/cli/src/repgen.ts의 main()이 runCli()로 감싸이지 않아 예상치 못한 오류 시 raw stack trace와 계약 밖 exit code가 나옴 — step5(review-fix)로 수정, 회귀 테스트 추가",
+    "round2_result": "no findings"
+  },
+  "known_issues": [
+    "fill-doc/analyze-doc의 fake-provider 성공 경로(OpenAI file_search+vector store, Grok streamText) mocking은 이번 phase에서 다루지 않았다. CLI adapter가 책임지는 인자/exit code 분류(2/4)는 검증했지만, provider 응답 성공 경로 전체 mocking은 legacy provider adapter(lib/server/fill-placeholders.ts) 쪽 별도 작업이 필요하다.",
+    "MODULE.md(document-core)에 문서화된 typed error code 체계는 여전히 미구현이며, CLI의 exit code 분류는 각 명령에서 error message/type을 보고 수동으로 매핑한 결과다 (Phase 1 deferred_backlog와 연동).",
+    "packages/providers로의 legacy AI 호출 코드 추출은 이번 phase 범위 밖이다 — lib/server/fill-placeholders.ts, lib/client-template-generator.ts가 CLI와 web 양쪽에서 그대로 재사용된다."
+  ],
+  "written_at": "2026-08-03"
+}

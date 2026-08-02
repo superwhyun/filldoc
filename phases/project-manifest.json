@@ -16,8 +16,9 @@
     },
     {
       "dir": "2-cli-product-surface",
-      "status": "pending",
-      "baseline": null
+      "status": "completed",
+      "baseline": "phases/baselines/2-cli-product-surface.json",
+      "tag": "RepGen-phase2-done"
     },
     {
       "dir": "3-web-adapter",

@@ -15,7 +15,7 @@
     {
       "dir": "2-cli-product-surface",
       "name": "cli-product-surface",
-      "status": "pending",
+      "status": "completed",
       "description": "CLI를 공식 제품 인터페이스로 확정하고, 파일시스템/환경변수 어댑터와 배포 의존성 경계를 정리한다"
     },
     {

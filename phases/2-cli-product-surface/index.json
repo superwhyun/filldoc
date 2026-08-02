@@ -35,7 +35,7 @@
     {
       "step": 4,
       "name": "phase-close",
-      "status": "pending",
+      "status": "completed",
       "summary": "CLI 배포 검증 결과와 Phase 3이 소비할 web-independent 계약을 baseline으로 남긴다"
     },
     {
