@@ -29,7 +29,7 @@
     {
       "step": 3,
       "name": "cli-e2e",
-      "status": "pending",
+      "status": "completed",
       "summary": "임시 작업 디렉터리에서 extract, render, fill(모킹), templatize의 CLI 왕복과 legacy 호환성을 검증한다"
     },
     {

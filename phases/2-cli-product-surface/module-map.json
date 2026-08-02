@@ -23,7 +23,7 @@
         3,
         4
       ],
-      "phase_status": "packaged"
+      "phase_status": "e2e-verified"
     }
   ],
   "integration_points": [
@@ -31,5 +31,7 @@
     "scripts/*.ts legacy command locations and package.json bin entries",
     "environment variables OPENAI_API_KEY and XAI_API_KEY"
   ],
-  "deferred_backlog": []
+  "deferred_backlog": [
+    "fill-doc/analyze-doc의 fake-provider 성공 경로(OpenAI file_search+vector store, Grok streamText) mocking은 cli-e2e(step3)에서 다루지 않았다. CLI adapter가 책임지는 인자/exit code 분류(2/4)는 검증했지만, provider 응답 성공 경로 전체를 신뢰성 있게 재현하려면 legacy provider adapter(lib/server/fill-placeholders.ts) 자체에 SDK 수준 fake를 두는 별도 작업이 필요하다."
+  ]
 }
