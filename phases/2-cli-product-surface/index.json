@@ -11,7 +11,7 @@
     {
       "step": 0,
       "name": "cli-contract",
-      "status": "pending",
+      "status": "completed",
       "summary": "명령 이름, stdin/stdout JSON, exit code, 진단 출력, 키 주입 우선순위를 공식 CLI 계약으로 고정한다"
     },
     {
