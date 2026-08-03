@@ -21,7 +21,8 @@
     "repgen-analyze-doc": "./dist/analyze-doc.js"
   },
   "scripts": {
-    "build": "node build.mjs"
+    "build": "node build.mjs",
+    "prepare": "node build.mjs"
   },
   "dependencies": {
     "@ai-sdk/xai": "latest",

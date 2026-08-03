@@ -51,6 +51,13 @@
       "kind": "review-fix",
       "status": "completed",
       "summary": "phase-close 이후 사용자 요청으로 재리뷰. cli-support.ts의 runCli()가 성공 시 process.exit(0)을 호출하지 않는 이유(repgen.ts의 dispatch가 대상 명령의 완료를 기다리지 않고 이벤트 루프 자연 종료에 의존)를 코드에 문서화하지 않아 향후 무심코 깨질 수 있던 잠재 위험을 주석으로 방지하고, 중첩 dispatch의 비동기 실패 전파를 검증하는 회귀 테스트를 추가한다"
+    },
+    {
+      "step": 7,
+      "name": "review-fix-npm-git-install-prepare-script",
+      "kind": "review-fix",
+      "status": "completed",
+      "summary": "phase-close 이후 사용자 요청(외부 배포/npm install 시나리오 점검)으로 재리뷰. apps/cli/package.json에 prepare 스크립트가 없어 git URL 기반 설치(npm install -g \"git+...#branch:apps/cli\")시 gitignore된 dist/가 생성되지 않고 bin이 깨진 경로를 가리키던 문제를 발견, prepare: node build.mjs를 추가해 설치 시 자동 빌드되도록 수정한다"
     }
   ]
 }
