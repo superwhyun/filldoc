@@ -44,6 +44,13 @@
       "kind": "review-fix",
       "status": "completed",
       "summary": "Phase 리뷰 게이트 1회차에서 발견: apps/cli/src/repgen.ts의 main()이 runCli()로 감싸이지 않아 예상치 못한 오류 시 raw stack trace와 잘못된 exit code(1)가 나오던 문제를 수정한다"
+    },
+    {
+      "step": 6,
+      "name": "review-fix-runcli-lifecycle-doc",
+      "kind": "review-fix",
+      "status": "completed",
+      "summary": "phase-close 이후 사용자 요청으로 재리뷰. cli-support.ts의 runCli()가 성공 시 process.exit(0)을 호출하지 않는 이유(repgen.ts의 dispatch가 대상 명령의 완료를 기다리지 않고 이벤트 루프 자연 종료에 의존)를 코드에 문서화하지 않아 향후 무심코 깨질 수 있던 잠재 위험을 주석으로 방지하고, 중첩 dispatch의 비동기 실패 전파를 검증하는 회귀 테스트를 추가한다"
     }
   ]
 }

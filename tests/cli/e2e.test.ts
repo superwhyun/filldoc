@@ -188,6 +188,25 @@ describe("CLI E2E — packed dist, repository 밖 work directory", () => {
     expect(result.stderr).not.toContain("at ")
   })
 
+  it("repgen을 통해 dispatch된 하위 명령의 비동기 실패도 exit code가 그대로 전파된다", () => {
+    // repgen.ts는 대상 명령의 runCli(main) 완료를 기다리지 않고 동적 import만 한다.
+    // 이 동작이 이벤트 루프 자연 종료에 의존하므로(cli-support.ts의 runCli 주석 참고),
+    // 실제 비동기 작업(파일 읽기 → extractPlaceholders) 이후에 던져지는 실패까지
+    // 잘리지 않고 중첩 dispatch로 전파되는지 검증한다.
+    const built = run("build-template", [
+      "--spec-json",
+      JSON.stringify({ blocks: [{ type: "paragraph", text: "{{x}}" }] }),
+      "--output",
+      "./tpl.docx",
+    ])
+    expect(built.status).toBe(0)
+
+    const result = run("repgen", ["fill-doc", "--template", "./tpl.docx", "--data", "./tpl.docx", "--output", "./out.docx"])
+    expect(result.status).toBe(4)
+    expect(result.stdout).toBe("")
+    expect(result.stderr).toContain("API 키가 없습니다")
+  })
+
   it("fill-doc/analyze-doc: API 키 없이 provider 오류 exit code(4)를 반환한다 (네트워크 호출 없음)", () => {
     writeFileSync(join(workDir, "t.docx"), Buffer.from("placeholder"))
 

@@ -52,7 +52,7 @@
   ],
   "legacy_wrapper_removal_condition": "scripts/*.ts 7개 thin wrapper와 root package.json의 repgen-* bin 매핑은 이번 phase에서 제거하지 않았다. 제거는 (1) 모든 실사용 진입점(문서, .skills/filldoc/SKILL.md, 외부 설치 가이드)이 apps/cli 패키지 설치 경로로 완전히 전환됐다는 증거와 (2) 그 경로에 대한 import/bundle/e2e 검증이 있을 때만 허용한다 — 지금은 그런 증거가 없으므로 유지.",
   "verification": {
-    "tests": "45 passing (8 files) — packages/core characterization/regression(28) + web adapter route(3) + CLI E2E(9, packed dist를 저장소 밖 work directory에서 spawn, repgen alias 자체 오류 처리 회귀 테스트 포함) + lib wrapper(3)",
+    "tests": "46 passing (8 files) — packages/core characterization/regression(28) + web adapter route(3) + CLI E2E(10, packed dist를 저장소 밖 work directory에서 spawn, repgen alias 자체 오류 처리 및 중첩 dispatch 비동기 실패 전파 회귀 테스트 포함) + lib wrapper(3)",
     "coverage": "packages/core/src 전체: lines 88.38%, branches 84.21%, functions 81.57%, statements 88.38% (80% threshold 강제, Phase 1과 동일 — 이번 phase는 core 로직을 바꾸지 않음)",
     "typecheck": "passed (pnpm exec tsc --noEmit --pretty false)",
     "lint": "0 errors (pnpm lint)",
@@ -62,7 +62,8 @@
   "review_gate": {
     "rounds": 2,
     "round1_finding": "apps/cli/src/repgen.ts의 main()이 runCli()로 감싸이지 않아 예상치 못한 오류 시 raw stack trace와 계약 밖 exit code가 나옴 — step5(review-fix)로 수정, 회귀 테스트 추가",
-    "round2_result": "no findings"
+    "round2_result": "no findings",
+    "post_close_review": "phase-close(태그 RepGen-phase2-done) 이후 사용자 요청으로 재리뷰 1회 추가 수행 — step6(review-fix)로 repgen.ts dispatch가 runCli()의 '성공 시 process.exit 없음' 불변조건에 암묵적으로 의존하던 부분을 코드 주석으로 문서화하고, 중첩 dispatch의 비동기 실패 전파 회귀 테스트를 추가함. 실제 동작 변경은 없었음(코드는 이전부터 정상 동작, latent risk를 사전에 문서화/테스트로 방지)."
   },
   "known_issues": [
     "fill-doc/analyze-doc의 fake-provider 성공 경로(OpenAI file_search+vector store, Grok streamText) mocking은 이번 phase에서 다루지 않았다. CLI adapter가 책임지는 인자/exit code 분류(2/4)는 검증했지만, provider 응답 성공 경로 전체 mocking은 legacy provider adapter(lib/server/fill-placeholders.ts) 쪽 별도 작업이 필요하다.",
