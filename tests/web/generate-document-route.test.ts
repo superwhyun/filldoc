@@ -45,4 +45,12 @@ describe("POST /api/generate-document (web adapter regression)", () => {
 
     expect(response.status).toBe(200)
   })
+
+  it("returns 413 when templateContent exceeds the upload size limit", async () => {
+    const oversized = new Array(20 * 1024 * 1024 + 1)
+
+    const response = await POST(postRequest({ templateContent: oversized, placeholders: {} }))
+
+    expect(response.status).toBe(413)
+  })
 })

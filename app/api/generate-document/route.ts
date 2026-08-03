@@ -2,11 +2,13 @@ import { type NextRequest, NextResponse } from "next/server"
 import { generateDocument } from "@/lib/server/generate-document"
 import { extractPlaceholders } from "@/lib/server/extract-placeholders"
 import { validateRenderData } from "@/lib/server/validate-render-data"
+import { assertUploadSize, UploadTooLargeError } from "@/lib/server/upload-limits"
 
 export async function POST(req: NextRequest) {
   try {
     const { templateContent, placeholders, allowPartial } = await req.json()
 
+    assertUploadSize(templateContent)
     const buffer = Buffer.from(templateContent)
 
     const inspection = extractPlaceholders(buffer)
@@ -36,6 +38,10 @@ export async function POST(req: NextRequest) {
       },
     })
   } catch (error: any) {
+    if (error instanceof UploadTooLargeError) {
+      return NextResponse.json({ error: error.message }, { status: 413 })
+    }
+
     const errorMessage = error?.properties?.explanation || error?.message || "Failed to generate document"
 
     return NextResponse.json({

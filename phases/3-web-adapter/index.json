@@ -17,7 +17,7 @@
     {
       "step": 1,
       "name": "api-adapters",
-      "status": "pending",
+      "status": "completed",
       "summary": "Next API routes를 입력 파싱·응답 변환만 하는 얇은 core 어댑터로 전환한다"
     },
     {

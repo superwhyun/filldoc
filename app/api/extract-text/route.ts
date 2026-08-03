@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { extractTextFromBuffer, ExtractTextError } from "@/lib/server/extract-text"
+import { assertUploadSize, UploadTooLargeError } from "@/lib/server/upload-limits"
 
 export async function POST(req: NextRequest) {
   try {
@@ -11,6 +12,7 @@ export async function POST(req: NextRequest) {
       }, { status: 400 })
     }
 
+    assertUploadSize(content)
     const buffer = Buffer.from(content)
 
     try {
@@ -23,6 +25,10 @@ export async function POST(req: NextRequest) {
       throw extractError
     }
   } catch (error: any) {
+    if (error instanceof UploadTooLargeError) {
+      return NextResponse.json({ error: error.message }, { status: 413 })
+    }
+
     const errorMessage = error?.message || "텍스트 추출 중 알 수 없는 오류가 발생했습니다"
 
     return NextResponse.json({
