@@ -145,13 +145,16 @@ export function DataUpload({ placeholders, onDataUploaded, onContentGenerated }:
             throw new Error('.doc 형식은 지원하지 않습니다. .docx 형식으로 변환해주세요.')
           }
 
-          if (
-            fileName.endsWith('.docx') ||
-            fileName.endsWith('.pdf') ||
-            fileName.endsWith('.txt') ||
-            fileName.endsWith('.md')
-          ) {
+          if (fileName.endsWith('.docx') || fileName.endsWith('.pdf')) {
+            // .docx/.pdf는 core 파서가 필요하므로 서버(/api/extract-text)에 위임한다.
             content = await extractTextFromFile(file)
+          } else if (fileName.endsWith('.txt') || fileName.endsWith('.md')) {
+            // 순수 텍스트는 core 로직이 필요 없다 — 불필요한 네트워크 왕복과
+            // JSON 바이트 배열 변환 오버헤드를 피하기 위해 브라우저에서 바로 읽는다.
+            content = await file.text()
+            if (!content || content.trim().length === 0) {
+              throw new Error("파일 내용이 비어있습니다")
+            }
           } else {
             throw new Error("지원하지 않는 파일 형식입니다 (.txt, .md, .docx, .pdf만 지원)")
           }
