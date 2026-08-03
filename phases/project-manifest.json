@@ -22,8 +22,9 @@
     },
     {
       "dir": "3-web-adapter",
-      "status": "pending",
-      "baseline": null
+      "status": "completed",
+      "baseline": "phases/baselines/3-web-adapter.json",
+      "tag": "RepGen-phase3-done"
     }
   ],
   "updated_at": "2026-08-03"

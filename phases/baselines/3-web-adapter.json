@@ -1,0 +1,62 @@
+{
+  "schema_version": 1,
+  "phase": "3-web-adapter",
+  "tag": "RepGen-phase3-done",
+  "source_module_map": "phases/3-web-adapter/module-map.json",
+  "modules": [
+    {
+      "name": "web-adapter",
+      "doc": "docs/modules/web-adapter/MODULE.md",
+      "public_exports": [
+        "lib/server/resolve-provider-credential.ts: resolveProviderCredential({provider, requestApiKey}), MissingProviderCredentialError — BYOK > 서버 env(OPENAI_API_KEY/XAI_API_KEY) 순 credential 해석",
+        "lib/server/upload-limits.ts: assertUploadSize(content), UploadTooLargeError, MAX_UPLOAD_BYTES(20MB)",
+        "lib/client-settings.ts: loadDocfillerSettings(), saveDocfillerSettings(), getProviderApiKey() — localStorage['docfiller-settings'] 단일 접근점",
+        "app/api/generate-template/route.ts (신규): { userRequest, provider, apiKey?, templateName? } -> DOCX attachment. lib/client-template-generator.ts의 generateTemplateDocx를 서버에서 호출"
+      ]
+    }
+  ],
+  "routes": [
+    "POST /api/extract-placeholders — 변경: 20MB 업로드 제한(413) 추가",
+    "POST /api/extract-text — 변경: 20MB 업로드 제한(413) 추가. Step 2부터 실제 UI(data-upload.tsx)가 호출하기 시작(이전엔 고아 라우트)",
+    "POST /api/generate-document — 변경: 20MB 업로드 제한(413) 추가. Step 2부터 실제 UI(app/page.tsx)가 호출하기 시작(이전엔 고아 라우트, 브라우저가 자체 docxtemplater로 렌더링했었음)",
+    "POST /api/fill-placeholders — 변경: apiKey가 optional로 바뀌고 서버 env fallback 지원(BYOK 없으면 OPENAI_API_KEY/XAI_API_KEY 사용, 둘 다 없으면 401)",
+    "POST /api/generate-template — 신규: 브라우저가 직접 api.openai.com/api.x.ai에 fetch하던 것을 서버로 이전. userRequest 누락 400, credential 없음 401",
+    "GET /api/templates, GET /api/templates/[filename] — 변경 없음"
+  ],
+  "shared_contracts": [
+    "docs/modules/web-adapter/MODULE.md",
+    "lib/client-settings.ts — 웹 UI의 BYOK 설정 단일 접근점",
+    "lib/server/resolve-provider-credential.ts, lib/server/upload-limits.ts — 웹 라우트 공통 정책"
+  ],
+  "integration_points": [
+    "packages/core(Phase 1), apps/cli(Phase 2)의 exit code/credential 우선순위 원칙을 web도 동일하게 따름(BYOK > env > 오류)",
+    "app/page.tsx, components/{template-upload,data-upload,content-editor,placeholder-list,settings-dialog}.tsx",
+    "tests/e2e/*.spec.ts (Playwright) — 브라우저 E2E, pnpm test:e2e로 별도 실행 (pnpm test는 vitest 빠른 게이트 유지)"
+  ],
+  "removed_from_browser_bundle": [
+    "pizzip/docxtemplater 직접 import 및 render 로직 (app/page.tsx, components/data-upload.tsx) — core의 render-template.ts/extract-document-text.ts와 중복이었음",
+    "pdfjs-dist 및 CDN 워커 스크립트 로드 (components/data-upload.tsx) — root package.json에서 의존성 자체를 제거",
+    "api.openai.com/api.x.ai로의 직접 fetch (components/template-upload.tsx) — API 키가 브라우저 네트워크 요청에 노출되던 경로"
+  ],
+  "verification": {
+    "unit_integration_tests": "57 passing (12 files, vitest) — packages/core(28) + web route(11, 신규 자격증명/업로드제한/generate-template 포함) + CLI E2E(10) + lib wrapper(3) + 기타(5)",
+    "coverage": "packages/core/src 전체: lines/branches/functions/statements 80% threshold 강제, Phase 1과 동일 수준 유지",
+    "e2e_tests": "4 passing (Playwright, chromium) — 수동 입력 happy path(core 결과 재검증 포함), allowPartial 경로, fake provider happy path(BYOK 전달 + adapter 경계 확인 + 다운로드 재검증), 401 실패 경로",
+    "typecheck": "passed (pnpm exec tsc --noEmit --pretty false)",
+    "lint": "0 errors (pnpm lint)",
+    "build": "passed (pnpm build) — client chunk에 docxtemplater/api.openai.com/api.x.ai/pdfjs/OPENAI_API_KEY/XAI_API_KEY 문자열 없음을 grep으로 확인",
+    "manual_dev_server_check": "pnpm dev:next로 실행한 서버에 실제 fixture로 4개 라우트(extract-placeholders, generate-document, fill-placeholders 401, generate-template 400) curl 확인"
+  },
+  "review_gate": {
+    "rounds": 2,
+    "round1_finding": "BYOK 사전 차단 제거 후 401 원문 메시지가 사용자에게 그대로 노출되어 Settings로의 안내가 빠짐 — step5(review-fix)로 template-upload.tsx/data-upload.tsx가 401을 특수 처리하도록 수정",
+    "round2_result": "no findings"
+  },
+  "known_issues": [
+    "validate_phase.py의 module-map.json 스키마가 세션 중 갱신되어(name/owned_paths/contracts/dependencies 배열 요구) 이 프로젝트의 기존 관례(ref/owner_steps/phase_status, Phase 0~3 전체에서 일관되게 사용 중)와 어긋난다. Phase 0~2가 이미 태그된 상태라 Phase 3만 새 스키마로 바꾸면 오히려 프로젝트 내 일관성이 깨지므로 그대로 두었다 — validator 자체 업데이트가 필요하면 전체 phase를 한 번에 마이그레이션해야 한다.",
+    "fill-doc/analyze-doc(CLI, Phase 2)과 마찬가지로 웹의 AI fill/템플릿 생성도 fake provider는 web adapter 경계(라우트 요청/응답)만 검증했다 — OpenAI file_search/vector store, Grok streamText의 실제 성공 응답 형태 자체는 mocking하지 않았다(legacy provider adapter 책임 범위).",
+    "lib/client-template-generator.ts라는 파일명이 이제는 부정확하다 — Step 2 이후 브라우저에서 더 이상 import되지 않고 서버(API route, CLI)에서만 쓰인다. 동작에는 문제 없으나 이름이 오도할 수 있어 다음 정리 작업 시 rename 후보로 남긴다.",
+    "packages/providers로의 legacy AI 호출 코드 추출은 여전히 범위 밖이다(Phase 1, 2 baseline과 동일한 판단) — lib/server/fill-placeholders.ts, lib/client-template-generator.ts가 CLI와 web 양쪽에서 그대로 재사용된다."
+  ],
+  "written_at": "2026-08-03"
+}

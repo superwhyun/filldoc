@@ -3,7 +3,7 @@ id: web-adapter
 version: 0.1.0
 parent: none
 persona: web-adapter
-status: planned
+status: implemented
 contract_version: 0.1.0
 ---
 

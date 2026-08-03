@@ -35,7 +35,7 @@
     {
       "step": 4,
       "name": "phase-close",
-      "status": "pending",
+      "status": "completed",
       "summary": "웹 회귀 결과, credential 결정, 운영 제약을 baseline과 모듈 문서에 기록하고 목표를 평가한다"
     },
     {

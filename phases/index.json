@@ -21,7 +21,7 @@
     {
       "dir": "3-web-adapter",
       "name": "web-adapter",
-      "status": "pending",
+      "status": "completed",
       "description": "Next.js API와 React UI를 core/CLI 계약의 얇은 웹 어댑터로 전환하고 웹 회귀를 검증한다"
     }
   ]

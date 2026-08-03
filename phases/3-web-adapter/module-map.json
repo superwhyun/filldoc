@@ -21,9 +21,10 @@
         1,
         2,
         3,
-        4
+        4,
+        5
       ],
-      "phase_status": "regression-verified"
+      "phase_status": "implemented"
     }
   ],
   "integration_points": [
@@ -31,5 +32,8 @@
     "app/api/* HTTP routes",
     "app/page.tsx and components/{template-upload,data-upload,content-editor,settings-dialog}.tsx"
   ],
-  "deferred_backlog": []
+  "deferred_backlog": [
+    "웹의 fake provider 검증은 web adapter 경계(요청/응답)만 다루고 OpenAI file_search/vector store, Grok streamText의 실제 성공 응답 형태는 mocking하지 않았다 (Phase 2 CLI baseline과 동일한 스코프 결정).",
+    "lib/client-template-generator.ts는 더 이상 브라우저에서 쓰이지 않는데 파일명이 이를 반영하지 못한다 — 다음 정리 작업 시 rename 후보."
+  ]
 }
