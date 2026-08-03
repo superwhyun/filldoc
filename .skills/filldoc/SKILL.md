@@ -79,8 +79,8 @@ Before finishing, confirm:
 CLI는 `apps/cli`(Next/React 등 웹 의존성이 전혀 없는 독립 패키지, 의존성 7개, 루트 저장소 대비 훨씬 가볍다)에 있다. npm/pnpm은 git URL에서 서브디렉터리만 골라 설치하는 기능을 지원하지 않으므로, 저장소를 clone한 뒤 `apps/cli`에서 전역 설치한다:
 
 ```bash
-git clone https://github.com/superwhyun/RepGen.git
-cd RepGen/apps/cli
+git clone https://github.com/superwhyun/filldoc.git
+cd filldoc/apps/cli
 npm install -g .
 ```
 

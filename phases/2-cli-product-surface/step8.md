@@ -56,8 +56,13 @@ npm publish 가능성을 사용자와 논의하던 중, 사용자가 제품/CLI 
 - `phases/project-manifest.json`의 `"tag"` 필드(`RepGen-phase{1,2,3}-done`) — 실제 존재하는
   git 태그를 정확히 가리켜야 하므로 그대로 둔다.
 - git 커밋 메시지, git 태그 자체 — 재작성/재생성하지 않는다.
-- GitHub 저장소 URL(`github.com/superwhyun/RepGen`)과 로컬 clone 디렉터리명(`RepGen/`) — 실제
-  원격 저장소 이름을 바꾸는 건 별도의, 훨씬 큰 외부 액션이라 이번 범위 밖이다.
+- ~~GitHub 저장소 URL(`github.com/superwhyun/RepGen`)과 로컬 clone 디렉터리명(`RepGen/`) — 실제
+  원격 저장소 이름을 바꾸는 건 별도의, 훨씬 큰 외부 액션이라 이번 범위 밖이다.~~
+  **(추가 갱신)** 사용자가 뒤이어 GitHub 저장소 자체도 filldoc으로 rename해달라고 명시적으로
+  요청해 `gh repo rename filldoc --repo superwhyun/RepGen`으로 실제 이름을 바꿨다(중복 이름
+  없음을 `gh repo view superwhyun/filldoc`로 사전 확인). 로컬 `git remote set-url`과
+  README.md/.skills/filldoc/SKILL.md의 URL·clone 디렉터리 안내를 `github.com/superwhyun/filldoc`,
+  `filldoc/`로 갱신했다.
 - `goal.json`의 원래 목표 서술("기존 repgen-* 명령") — 리팩터링을 시작하던 시점의 원래 목표
   문구라 재작성하지 않는다.
 

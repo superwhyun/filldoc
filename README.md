@@ -16,8 +16,8 @@ Word 템플릿의 플레이스홀더를 AI가 자동으로 채워주는 Next.js 
 Hermes 같은 AI 에이전트는 브라우저나 Next 서버 없이, `apps/cli`(Next/React 등 웹 의존성이 전혀 없는 독립 패키지, 의존성 7개)만 전역 CLI로 설치해서 바로 쓸 수 있다.
 
 ```bash
-git clone https://github.com/superwhyun/RepGen.git
-cd RepGen/apps/cli
+git clone https://github.com/superwhyun/filldoc.git
+cd filldoc/apps/cli
 npm install -g .
 ```
 
@@ -33,8 +33,8 @@ npm install -g .
 
 ```bash
 # 저장소 클론
-git clone https://github.com/superwhyun/RepGen.git
-cd RepGen
+git clone https://github.com/superwhyun/filldoc.git
+cd filldoc
 
 # 의존성 설치
 npm install
@@ -207,7 +207,7 @@ AI가 더 정확한 내용을 생성하도록 구체적인 지침을 제공하�
 ## 📁 프로젝트 구조
 
 ```
-RepGen/
+filldoc/
 ├── app/
 │   ├── api/
 │   │   ├── extract-placeholders/  # 플레이스홀더 추출
@@ -303,4 +303,4 @@ MIT License
 
 ## 📧 문의
 
-프로젝트 링크: https://github.com/superwhyun/RepGen
+프로젝트 링크: https://github.com/superwhyun/filldoc
