@@ -5,7 +5,8 @@
 - **빌드**: `pnpm build` (TypeScript 오류는 빌드 설정에서 무시됨)
 - **린트**: `pnpm lint`
 - **프로덕션 서버**: `pnpm start`
-- **테스트 없음**: 이 프로젝트에는 테스트 파일이나 테스트 스크립트가 없습니다
+- **단위 테스트**: `pnpm test` (vitest — `tests/document-core`, `tests/web`, `tests/cli`, `tests/lib`)
+- **E2E 테스트**: `pnpm test:e2e` (playwright — `tests/e2e`)
 
 ## 코드 스타일
 

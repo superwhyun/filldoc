@@ -81,10 +81,11 @@ CLI는 `apps/cli`(Next/React 등 웹 의존성이 전혀 없는 독립 패키지
 ```bash
 git clone https://github.com/superwhyun/filldoc.git
 cd filldoc/apps/cli
-npm install -g .
+npm install       # 의존성 설치 + esbuild로 dist/*.js 번들 생성 (prepare 스크립트)
+npm install -g .  # dist/*.js를 전역 filldoc-* 커맨드로 심볼릭 링크
 ```
 
-`npm install`이 `prepare` 스크립트로 `esbuild` 번들(`dist/*.js`)을 자동 생성하고, `-g .`가 그 결과물을 전역 `filldoc-*` 커맨드로 심볼릭 링크한다. 이후 새 버전으로 갱신하고 싶으면 `git pull` 후 같은 `npm install -g .`를 다시 실행하면 된다.
+**두 명령 다 실행해야 한다.** `npm install -g .`만 단독 실행하면 `apps/cli/node_modules`가 아직 없어서 `prepare` 빌드 스크립트가 `esbuild`를 찾지 못해 실패한다(`ERR_MODULE_NOT_FOUND`). 이후 새 버전으로 갱신하고 싶으면 `git pull` 후 같은 두 명령을 다시 실행하면 된다.
 
 ### 설치 (이 저장소를 로컬에서 개발/디버깅할 때)
 

@@ -18,10 +18,11 @@ Hermes 같은 AI 에이전트는 브라우저나 Next 서버 없이, `apps/cli`(
 ```bash
 git clone https://github.com/superwhyun/filldoc.git
 cd filldoc/apps/cli
-npm install -g .
+npm install       # 의존성 설치 + esbuild로 dist/ 빌드 (prepare 스크립트)
+npm install -g .  # 빌드된 dist/를 전역 filldoc-* 커맨드로 연결
 ```
 
-(npm/pnpm은 git URL에서 서브디렉터리만 콕 집어 설치하는 기능을 제공하지 않으므로, 저장소 전체를 clone한 뒤 `apps/cli`에서 설치한다. `npm install`이 `esbuild`로 `dist/`를 자동 빌드한다.)
+(npm/pnpm은 git URL에서 서브디렉터리만 콕 집어 설치하는 기능을 제공하지 않으므로, 저장소 전체를 clone한 뒤 `apps/cli`에서 설치한다. **두 명령 다 실행해야 한다** — `npm install -g .`만 단독으로 실행하면 `apps/cli/node_modules`가 없는 상태라 `prepare` 빌드 스크립트가 `esbuild`를 못 찾아 실패한다.)
 
 `filldoc-extract-doc`, `filldoc-render-doc`, `filldoc-fill-doc`, `filldoc-extract-text`, `filldoc-templatize-doc`, `filldoc-build-template`, `filldoc-analyze-doc` 커맨드가 어느 작업 디렉토리에서든 바로 실행된다.
 
@@ -36,12 +37,14 @@ npm install -g .
 git clone https://github.com/superwhyun/filldoc.git
 cd filldoc
 
-# 의존성 설치
-npm install
-# 또는
+# 의존성 설치 (pnpm 권장 — packages/apps 워크스페이스 구조, pnpm-lock.yaml 기준)
 pnpm install
+# 또는
+npm install
 
 # 개발 서버 실행
+pnpm dev
+# 또는
 npm run dev
 ```
 
@@ -201,28 +204,39 @@ AI가 더 정확한 내용을 생성하도록 구체적인 지침을 제공하�
 - **Frontend**: Next.js 16, React 19, TypeScript
 - **Styling**: Tailwind CSS v4, shadcn/ui
 - **AI**: OpenAI SDK (GPT-5), xAI SDK (Grok-4)
-- **문서 처리**: docxtemplater, pizzip, pdf-parse
+- **문서 처리**: docxtemplater, pizzip, pdf-parse, docx
+- **CLI 번들링**: esbuild (`apps/cli`)
+- **모노레포**: pnpm workspace (`packages/*`, `apps/*`)
+- **테스트**: vitest(단위), playwright(e2e)
 - **개발 도구**: nodemon, ESLint
 
 ## 📁 프로젝트 구조
 
 ```
 filldoc/
-├── app/
+├── app/                        # 웹 UI (Next.js)
 │   ├── api/
 │   │   ├── extract-placeholders/  # 플레이스홀더 추출
-│   │   ├── extract-text/          # Word 텍스트 추출
+│   │   ├── extract-text/          # Word/PDF 텍스트 추출
 │   │   ├── fill-placeholders/     # AI 자동 채우기
-│   │   └── generate-document/     # 문서 생성
+│   │   ├── generate-document/     # 문서 생성
+│   │   ├── generate-template/     # 예시 문서 → 템플릿 생성
+│   │   └── templates/             # 서버 템플릿 목록/다운로드
 │   ├── layout.tsx
 │   └── page.tsx
-├── components/
+├── components/                 # 웹 UI 컴포넌트
 │   ├── template-upload.tsx        # 템플릿 업로드
 │   ├── placeholder-list.tsx       # 플레이스홀더 목록
 │   ├── data-upload.tsx            # 데이터 파일 업로드
 │   ├── content-editor.tsx         # 내용 편집
 │   └── settings-dialog.tsx        # API 키 설정
-└── AGENTS.md                      # 에이전트 가이드라인
+├── lib/server/                 # 웹 어댑터 (packages/core를 얇게 감싸는 API 라우트용 함수)
+├── packages/core/               # 문서 처리 핵심 로직 (환경 독립, 웹/CLI 공용 — @filldoc/core)
+├── apps/cli/                    # filldoc-* CLI (웹 의존성 없는 독립 배포 패키지)
+├── .skills/filldoc/              # AI 에이전트용 스킬 문서 (SKILL.md)
+├── template/                    # 서버 템플릿 저장소 (.skills/filldoc/templates와 동일 폴더, 심볼릭 링크)
+├── tests/                       # vitest 단위 테스트 + playwright e2e
+└── AGENTS.md                    # 에이전트 가이드라인
 ```
 
 ## 🔑 API 키 관리
@@ -277,6 +291,12 @@ npm run build
 
 # 프로덕션 실행
 npm run start
+
+# 단위 테스트 (vitest)
+npm run test
+
+# E2E 테스트 (playwright)
+npm run test:e2e
 ```
 
 ### 코드 스타일

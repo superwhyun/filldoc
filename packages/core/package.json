@@ -1,6 +1,7 @@
 {
   "name": "@filldoc/core",
   "private": true,
+  "license": "MIT",
   "type": "module",
   "exports": "./src/index.ts",
   "engines": {

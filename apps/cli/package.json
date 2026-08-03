@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "type": "module",
   "description": "filldoc CLI — 템플릿 분석/렌더링/템플릿화를 브라우저/Next 서버 없이 실행하는 독립 명령들",
-  "license": "UNLICENSED",
+  "license": "MIT",
   "engines": {
     "node": ">=22"
   },
