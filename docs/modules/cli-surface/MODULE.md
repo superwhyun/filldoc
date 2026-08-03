@@ -3,7 +3,7 @@ id: cli-surface
 version: 0.1.0
 parent: none
 persona: cli-surface
-status: planned
+status: implemented
 contract_version: 0.1.0
 ---
 

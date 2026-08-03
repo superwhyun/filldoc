@@ -14,6 +14,6 @@
     "pnpm exec tsc --noEmit --pretty false",
     "pnpm test"
   ],
-  "max_phases": 3,
+  "max_phases": 4,
   "stagnation_limit": 3
 }

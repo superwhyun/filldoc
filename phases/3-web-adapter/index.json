@@ -11,7 +11,7 @@
     {
       "step": 0,
       "name": "web-contract",
-      "status": "pending",
+      "status": "completed",
       "summary": "HTTP 요청/응답과 웹 credential 정책을 CLI/core DTO에 대응시키는 web-adapter contract를 고정한다"
     },
     {

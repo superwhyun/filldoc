@@ -20,9 +20,16 @@
     "cli-surface": {
       "persona": "cli-surface",
       "version": "0.1.0",
-      "status": "planned",
+      "status": "implemented",
       "children": [],
       "module_doc": "docs/modules/cli-surface/MODULE.md"
+    },
+    "web-adapter": {
+      "persona": "web-adapter",
+      "version": "0.1.0",
+      "status": "planned",
+      "children": [],
+      "module_doc": "docs/modules/web-adapter/MODULE.md"
     }
   }
 }
