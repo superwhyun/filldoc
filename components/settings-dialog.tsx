@@ -15,29 +15,12 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { useToast } from "@/hooks/use-toast"
+import { type AIProvider, type DocfillerSettings, loadDocfillerSettings, saveDocfillerSettings } from "@/lib/client-settings"
 
-export type AIProvider = "openai" | "grok"
-
-export type DocfillerSettings = {
-  openaiApiKey: string
-  grokApiKey: string
-  defaultProvider: AIProvider
-}
-
-const DEFAULT_SETTINGS: DocfillerSettings = {
-  openaiApiKey: "",
-  grokApiKey: "",
-  defaultProvider: "openai",
-}
-
-function loadStoredSettings(): DocfillerSettings {
-  if (typeof window === "undefined") return DEFAULT_SETTINGS
-  const stored = localStorage.getItem("docfiller-settings")
-  return stored ? JSON.parse(stored) : DEFAULT_SETTINGS
-}
+export type { AIProvider, DocfillerSettings }
 
 export function SettingsDialog() {
-  const [settings, setSettings] = useState<DocfillerSettings>(loadStoredSettings)
+  const [settings, setSettings] = useState<DocfillerSettings>(loadDocfillerSettings)
   const [open, setOpen] = useState(false)
   const [keyErrors, setKeyErrors] = useState({ openai: false, grok: false })
   const { toast } = useToast()
@@ -74,8 +57,8 @@ export function SettingsDialog() {
       return
     }
     
-    localStorage.setItem("docfiller-settings", JSON.stringify(settings))
-    
+    saveDocfillerSettings(settings)
+
     toast({
       title: "설정이 저장되었습니다",
       description: "API 키와 기본 제공자가 성공적으로 저장되었습니다.",

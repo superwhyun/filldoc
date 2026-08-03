@@ -6,11 +6,10 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { Button } from "@/components/ui/button"
 import type { Placeholder } from "@/app/page"
 import { deleteStoredTemplate, getAllStoredTemplates, getStoredTemplate, saveTemplates } from "@/lib/template-storage"
-import { generateTemplateDocx } from "@/lib/client-template-generator"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
-import type { DocfillerSettings } from "@/components/settings-dialog"
+import { getProviderApiKey, loadDocfillerSettings } from "@/lib/client-settings"
 import { FileText, Plus, Sparkles, Upload, X } from "lucide-react"
 
 type Props = {
@@ -238,23 +237,35 @@ export function TemplateUpload({ onTemplateUploaded }: Props) {
       return
     }
 
-    const settingsRaw = localStorage.getItem("docfiller-settings")
-    const settings = settingsRaw ? (JSON.parse(settingsRaw) as DocfillerSettings) : null
-    const provider = settings?.defaultProvider ?? "openai"
-    const apiKey = provider === "openai" ? settings?.openaiApiKey : settings?.grokApiKey
-
-    if (!apiKey) {
-      alert(`Settings에서 ${provider === "openai" ? "OpenAI" : "Grok"} API 키를 먼저 설정해주세요.`)
-      return
-    }
+    const settings = loadDocfillerSettings()
+    const provider = settings.defaultProvider
+    const apiKey = getProviderApiKey(settings, provider)
 
     setIsGeneratingAiTemplate(true)
     try {
-      const { file } = await generateTemplateDocx({
-        provider,
-        apiKey,
-        userRequest: aiTemplatePrompt,
-        templateName: aiTemplateName.trim() || undefined,
+      const response = await fetch("/api/generate-template", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userRequest: aiTemplatePrompt,
+          provider,
+          apiKey,
+          templateName: aiTemplateName.trim() || undefined,
+        }),
+      })
+
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({}))
+        throw new Error(error.error || "AI 템플릿 생성 중 오류가 발생했습니다.")
+      }
+
+      const disposition = response.headers.get("Content-Disposition") ?? ""
+      const filenameMatch = disposition.match(/filename="([^"]+)"/)
+      const filename = filenameMatch ? decodeURIComponent(filenameMatch[1]) : `ai-template-${Date.now()}.docx`
+
+      const blob = await response.blob()
+      const file = new File([blob], filename, {
+        type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
       })
 
       await saveTemplates([file])

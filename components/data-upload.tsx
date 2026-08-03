@@ -6,6 +6,7 @@ import { useState, useCallback, useRef, useEffect } from "react"
 import { Upload, Loader2, File as FileIcon, X, ClipboardPaste } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import type { Placeholder, AIFillEvidence, FillProcessingMeta } from "@/app/page"
+import { getProviderApiKey, loadDocfillerSettings } from "@/lib/client-settings"
 
 type Props = {
   placeholders: Placeholder[]
@@ -101,51 +102,25 @@ export function DataUpload({ placeholders, onDataUploaded, onContentGenerated }:
     }
   }, [addClipboardText, isProcessing])
 
+  // 텍스트 추출은 core의 extractDocumentText를 쓰는 /api/extract-text에 위임한다.
+  // (이전엔 .docx는 pizzip/docxtemplater, .pdf는 pdfjs-dist(CDN 워커 로드 포함)로
+  // 브라우저에서 직접 추출했다 — core 로직 중복이라 제거)
   const extractTextFromFile = async (file: File): Promise<string> => {
-    try {
-      const fileName = file.name.toLowerCase()
+    const arrayBuffer = await file.arrayBuffer()
 
-      // Word 파일(.docx) 브라우저에서 직접 텍스트 추출
-      if (fileName.endsWith('.docx')) {
-        const PizZip = (await import("pizzip")).default
-        const Docxtemplater = (await import("docxtemplater")).default
-        const arrayBuffer = await file.arrayBuffer()
-        const zip = new PizZip(arrayBuffer)
-        const doc = new Docxtemplater(zip)
-        return doc.getFullText()
-      }
+    const response = await fetch("/api/extract-text", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ content: Array.from(new Uint8Array(arrayBuffer)), filename: file.name }),
+    })
 
-      // PDF 파일 브라우저에서 직접 텍스트 추출 (pdfjs-dist 활용)
-      if (fileName.endsWith('.pdf')) {
-        const pdfjs = await import('pdfjs-dist')
-        // 워커 설정 - npm 패키지에서 제공하는 워커 파일 사용
-        pdfjs.GlobalWorkerOptions.workerSrc = `//cdn.jsdelivr.net/npm/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`
-
-        const arrayBuffer = await file.arrayBuffer()
-        const loadingTask = pdfjs.getDocument({ data: arrayBuffer })
-        const pdf = await loadingTask.promise
-
-        let fullText = ""
-        for (let i = 1; i <= pdf.numPages; i++) {
-          const page = await pdf.getPage(i)
-          const content = await page.getTextContent()
-          const strings = content.items.map((item: any) => item.str)
-          fullText += strings.join(" ") + "\n"
-        }
-
-        if (!fullText.trim()) throw new Error("PDF에서 텍스트를 추출할 수 없습니다")
-        return fullText
-      }
-
-      // 텍스트 계열 파일
-      if (fileName.endsWith('.txt') || fileName.endsWith('.md')) {
-        return await file.text()
-      }
-
-      throw new Error("지원하지 않는 파일 형식입니다 (.docx, .pdf, .txt, .md)")
-    } catch (error) {
-      throw error
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}))
+      throw new Error(error.error || "파일에서 텍스트를 추출하지 못했습니다.")
     }
+
+    const { text } = await response.json()
+    return text
   }
 
   const processFiles = useCallback(
@@ -170,15 +145,13 @@ export function DataUpload({ placeholders, onDataUploaded, onContentGenerated }:
             throw new Error('.doc 형식은 지원하지 않습니다. .docx 형식으로 변환해주세요.')
           }
 
-          // Word 또는 PDF 파일인 경우 텍스트 추출
-          if (fileName.endsWith('.docx') || fileName.endsWith('.pdf')) {
+          if (
+            fileName.endsWith('.docx') ||
+            fileName.endsWith('.pdf') ||
+            fileName.endsWith('.txt') ||
+            fileName.endsWith('.md')
+          ) {
             content = await extractTextFromFile(file)
-          } else if (fileName.endsWith('.txt') || fileName.endsWith('.md')) {
-            // 일반 텍스트 파일
-            content = await file.text()
-            if (!content || content.trim().length === 0) {
-              throw new Error("파일 내용이 비어있습니다")
-            }
           } else {
             throw new Error("지원하지 않는 파일 형식입니다 (.txt, .md, .docx, .pdf만 지원)")
           }
@@ -263,10 +236,9 @@ export function DataUpload({ placeholders, onDataUploaded, onContentGenerated }:
         .map((f) => `=== ${f.file.name} ===\n${f.content}`)
         .join("\n\n")
 
-      const settings = localStorage.getItem("docfiller-settings")
-      const { defaultProvider, openaiApiKey, grokApiKey } = settings
-        ? JSON.parse(settings)
-        : { defaultProvider: "openai", openaiApiKey: "", grokApiKey: "" }
+      const settings = loadDocfillerSettings()
+      const defaultProvider = settings.defaultProvider
+      const apiKey = getProviderApiKey(settings, defaultProvider)
 
       const openaiStages = [
         "OpenAI에 파일 업로드 중...",
@@ -298,7 +270,7 @@ export function DataUpload({ placeholders, onDataUploaded, onContentGenerated }:
           dataContent: combinedContent,
           placeholders,
           provider: defaultProvider,
-          apiKey: defaultProvider === "openai" ? openaiApiKey : grokApiKey,
+          apiKey,
         }),
       })
 

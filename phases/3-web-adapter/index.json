@@ -23,7 +23,7 @@
     {
       "step": 2,
       "name": "ui-migration",
-      "status": "pending",
+      "status": "completed",
       "summary": "브라우저 내 중복 DOCX 처리와 AI 호출을 제거하고 UI를 업로드·편집·다운로드에 집중시킨다"
     },
     {

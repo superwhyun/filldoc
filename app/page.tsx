@@ -92,112 +92,29 @@ export default function Home() {
   const handleEditComplete = async () => {
     setIsProcessing(true)
     try {
-      const PizZip = (await import("pizzip")).default
-      const Docxtemplater = (await import("docxtemplater")).default
-
-      const zip = new PizZip(templateContent!)
-
-      // 템플릿 자동 변환: {{task.name}} -> {{#task}}{{name}}{{/task}}
-      try {
-        const docXmlPath = "word/document.xml"
-        const file = zip.file(docXmlPath)
-        if (file) {
-          let docXml = file.asText()
-
-          // 표의 각 행에서 parent.child 패턴을 루프로 변환
-          const trRegex = /<w:tr\b[^>]*>([\s\S]*?)<\/w:tr>/g
-          docXml = docXml.replace(trRegex, (fullMatch) => {
-            const plainText = fullMatch.replace(/<[^>]+>/g, '')
-            const dotMatch = plainText.match(/\{\{([a-zA-Z0-9_]+)\./)
-
-            if (!dotMatch) return fullMatch
-
-            const parentName = dotMatch[1]
-
-            // parent. 제거
-            let converted = fullMatch.replace(new RegExp(`\\{\\{${parentName}\\.`, 'g'), '{{')
-
-            // 행 시작에 {{#parent}} 추가
-            // NOTE: "<w:t[^>]*>" can falsely match "<w:tr...>".
-            // Match only real text nodes (<w:t ...> or <w:t>).
-            const firstTextMatch = converted.match(/<w:t(?:\s[^>]*)?>/)
-            if (firstTextMatch?.index !== undefined) {
-              const pos = firstTextMatch.index + firstTextMatch[0].length
-              converted = converted.slice(0, pos) + `{{#${parentName}}}` + converted.slice(pos)
-            }
-
-            // 행 끝에 {{/parent}} 추가
-            const lastCloseIndex = converted.lastIndexOf('</w:t>')
-            if (lastCloseIndex !== -1) {
-              converted = converted.slice(0, lastCloseIndex) + `{{/${parentName}}}` + converted.slice(lastCloseIndex)
-            }
-
-            return converted
-          })
-
-          zip.file(docXmlPath, docXml)
-        }
-      } catch (convError) {
-        // Auto-conversion failed, proceed with normal rendering
-      }
-
-      // 데이터 준비
       const data = placeholders.reduce((acc, p) => ({ ...acc, [p.key]: p.value }), {})
 
-      // --- Parser & Options ---
-      const angularParser = (tag: string) => {
-        // 1. 점 기호(.)나 쉼표(:) 앞에 오는 루프 기호(#, /) 제거
-        // {{#task.name}} -> task.name, {{/task}} -> task
-        let expression = tag.replace(/^[#\/]/, "")
-
-        // 2. 지침(description) 제거: {{keyword:description}} -> keyword
-        expression = expression.includes(':') ? expression.split(':')[0].trim() : expression.trim()
-
-        if (expression === '') {
-          return { get: (s: any) => s }
-        }
-
-        return {
-          get: (scope: any) => {
-            let obj: any = scope
-            const parts = expression.split('.')
-            for (let i = 0; i < parts.length; i++) {
-              if (obj === undefined || obj === null) return undefined
-              obj = obj[parts[i]]
-            }
-            return obj
-          }
-        }
-      }
-
-      const doc = new Docxtemplater(zip, {
-        paragraphLoop: true,
-        linebreaks: true,
-        delimiters: {
-          start: '{{',
-          end: '}}'
-        },
-        parser: angularParser,
-        nullGetter: () => "" // 값이 없는 경우 undefined 대신 빈 문자열 출력
+      const response = await fetch("/api/generate-document", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          templateContent: Array.from(new Uint8Array(templateContent!)),
+          placeholders: data,
+          allowPartial: true,
+        }),
       })
 
-      try {
-        doc.render(data)
-      } catch (renderError: any) {
-        throw renderError
+      if (!response.ok) {
+        const errorBody = await response.json().catch(() => ({}))
+        throw new Error(errorBody.error || "문서 생성 중 알 수 없는 오류가 발생했습니다.")
       }
 
-      const output = doc.getZip().generate({
-        type: "blob",
-        mimeType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-      })
-
+      const output = await response.blob()
       const url = URL.createObjectURL(output)
       setDownloadUrl(url)
       setStep("download")
     } catch (error: any) {
-      const errorMsg = error.properties?.explanation || error.message || "문서 생성 중 알 수 없는 오류가 발생했습니다."
-      alert(`오류: ${errorMsg}`)
+      alert(`오류: ${error.message || "문서 생성 중 알 수 없는 오류가 발생했습니다."}`)
     } finally {
       setIsProcessing(false)
     }
