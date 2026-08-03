@@ -12,6 +12,11 @@ node_modules
 /coverage
 apps/cli/dist
 
+# playwright
+/test-results/
+/playwright-report/
+/playwright/.cache/
+
 # debug
 npm-debug.log*
 yarn-debug.log*

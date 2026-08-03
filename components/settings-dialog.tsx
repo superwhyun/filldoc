@@ -72,7 +72,7 @@ export function SettingsDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="icon">
+        <Button variant="outline" size="icon" aria-label="Settings">
           <SettingsIcon className="h-4 w-4" />
         </Button>
       </DialogTrigger>
