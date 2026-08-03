@@ -118,7 +118,9 @@ test("provider failure path: 401 from /api/fill-placeholders surfaces as a user-
   await page.getByRole("button", { name: /AI로 자동 채우기/ }).click()
   const dialog = await dialogPromise
 
-  expect(dialog.message()).toContain("API 키가 없습니다")
+  // 401은 서버 원문 메시지 대신 Settings로 안내하는 사용자 친화적 메시지로 대체된다.
+  expect(dialog.message()).toContain("Settings에서")
+  expect(dialog.message()).toContain("API 키를 설정해주세요")
   await dialog.dismiss()
 
   // 실패 후에도 데이터 업로드 화면에 그대로 남아있어야 한다(크래시/빈 화면 아님)

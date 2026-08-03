@@ -37,6 +37,13 @@
       "name": "phase-close",
       "status": "pending",
       "summary": "웹 회귀 결과, credential 결정, 운영 제약을 baseline과 모듈 문서에 기록하고 목표를 평가한다"
+    },
+    {
+      "step": 5,
+      "name": "review-fix-credential-error-messages",
+      "kind": "review-fix",
+      "status": "completed",
+      "summary": "Phase 리뷰 게이트 1회차에서 발견: Step 2에서 client-side BYOK 키 사전 차단을 제거하면서, 서버의 401 원문 메시지(\"요청에 apiKey를 포함하거나 서버에 OPENAI_API_KEY 환경변수를 설정하세요\")가 최종 사용자에게 그대로 노출되어 어디를 고쳐야 하는지 안내가 부족해졌다. template-upload.tsx/data-upload.tsx가 401을 별도로 잡아 Settings로 안내하는 메시지를 보여주도록 수정한다"
     }
   ]
 }

@@ -255,6 +255,9 @@ export function TemplateUpload({ onTemplateUploaded }: Props) {
       })
 
       if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error(`Settings에서 ${provider === "openai" ? "OpenAI" : "Grok"} API 키를 설정해주세요.`)
+        }
         const error = await response.json().catch(() => ({}))
         throw new Error(error.error || "AI 템플릿 생성 중 오류가 발생했습니다.")
       }

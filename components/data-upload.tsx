@@ -275,6 +275,9 @@ export function DataUpload({ placeholders, onDataUploaded, onContentGenerated }:
       })
 
       if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error(`Settings에서 ${defaultProvider === "openai" ? "OpenAI" : "Grok"} API 키를 설정해주세요.`)
+        }
         const error = await response.json()
         throw new Error(error.error || "Failed to fill placeholders")
       }
