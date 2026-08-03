@@ -2,16 +2,16 @@
 /**
  * 이미 결정된 { key: value } 데이터로 템플릿을 즉시 렌더링하는 독립 CLI.
  * AI API 키가 필요 없다 — 값 채우기는 호출한 에이전트(Hermes 등)가
- * 이미 끝냈다고 가정하고, RepGen은 순수하게 "템플릿에 값 끼워넣기"만 한다.
+ * 이미 끝냈다고 가정하고, filldoc은 순수하게 "템플릿에 값 끼워넣기"만 한다.
  *
  * 사용법 (extract-doc으로 뽑은 placeholder 목록을 보고 값을 채운 뒤):
- *   repgen-render-doc \
+ *   filldoc-render-doc \
  *     --template template/template-basic.docx \
  *     --data ./values.json \
  *     --output ./filled.docx
  *
  * --data/--data-json을 생략하고 stdin으로 파이프해도 된다:
- *   cat values.json | repgen-render-doc --template template-basic.docx --output ./filled.docx
+ *   cat values.json | filldoc-render-doc --template template-basic.docx --output ./filled.docx
  *
  * values.json 예시 (일반 필드는 문자열, loop 필드는 객체 배열):
  *   {
@@ -37,7 +37,7 @@ type CliArgs = {
 
 function printUsage() {
   console.error(`사용법:
-  repgen-render-doc --template <template.docx> (--data <values.json> | --data-json '<json string>') --output <out.docx> [--allow-partial]
+  filldoc-render-doc --template <template.docx> (--data <values.json> | --data-json '<json string>') --output <out.docx> [--allow-partial]
 
 옵션:
   --template       플레이스홀더가 포함된 .docx 템플릿 경로 (필수)

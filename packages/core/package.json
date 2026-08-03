@@ -1,5 +1,5 @@
 {
-  "name": "@repgen/core",
+  "name": "@filldoc/core",
   "private": true,
   "type": "module",
   "exports": "./src/index.ts",

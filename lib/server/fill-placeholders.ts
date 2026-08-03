@@ -377,7 +377,7 @@ export async function fillPlaceholders({
       let vectorStoreId: string | null = null
 
       try {
-        const file = await toFile(Buffer.from(dataContent, "utf-8"), `repgen-${Date.now()}.txt`, {
+        const file = await toFile(Buffer.from(dataContent, "utf-8"), `filldoc-${Date.now()}.txt`, {
           type: "text/plain",
         })
 
@@ -388,7 +388,7 @@ export async function fillPlaceholders({
         uploadedFileId = uploaded.id
 
         const vectorStore = await openaiClient.vectorStores.create({
-          name: `repgen-${Date.now()}`,
+          name: `filldoc-${Date.now()}`,
           expires_after: { anchor: "last_active_at", days: 1 },
         })
         vectorStoreId = vectorStore.id

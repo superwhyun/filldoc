@@ -4,7 +4,7 @@
  * Hermes 같은 외부 에이전트가 "skill"로 직접 호출하기 위한 용도.
  *
  * 사용법:
- *   OPENAI_API_KEY=sk-... repgen-fill-doc \
+ *   OPENAI_API_KEY=sk-... filldoc-fill-doc \
  *     --template template/template-basic.docx \
  *     --data ./minutes.docx,./notes.txt \
  *     --output ./filled.docx \
@@ -35,7 +35,7 @@ type CliArgs = {
 
 function printUsage() {
   console.error(`사용법:
-  repgen-fill-doc --template <template.docx> --data <file1,file2,...> --output <out.docx> [--provider openai|grok] [--api-key <key>]
+  filldoc-fill-doc --template <template.docx> --data <file1,file2,...> --output <out.docx> [--provider openai|grok] [--api-key <key>]
 
 옵션:
   --template   플레이스홀더가 포함된 .docx 템플릿 경로 (필수)
@@ -45,7 +45,7 @@ function printUsage() {
   --api-key    AI API 키. 생략 시 OPENAI_API_KEY / XAI_API_KEY 환경변수 사용
 
 예시:
-  OPENAI_API_KEY=sk-... repgen-fill-doc --template template-basic.docx --data ./minutes.docx --output ./filled.docx`)
+  OPENAI_API_KEY=sk-... filldoc-fill-doc --template template-basic.docx --data ./minutes.docx --output ./filled.docx`)
 }
 
 function parseArgs(argv: string[]): CliArgs {

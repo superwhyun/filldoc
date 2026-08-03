@@ -1,4 +1,4 @@
-# RepGen 에이전트 가이드라인
+# filldoc 에이전트 가이드라인
 
 ## 빌드/린트/테스트 명령어
 - **개발 서버**: `pnpm dev` (Next.js 개발 서버 시작)
@@ -37,6 +37,6 @@
 - 아이콘은 Lucide React 사용
 
 ## Skills
-- `filldoc`: RepGen 템플릿+데이터 채움 기능 구현/수정/디버깅 워크플로우 스킬
+- `filldoc`: filldoc 템플릿+데이터 채움 기능 구현/수정/디버깅 워크플로우 스킬
   - 경로: `.skills/filldoc/SKILL.md` (저장소 루트 기준)
   - 트리거 예시: 템플릿 업로드/파싱, placeholder 매핑, 미리보기 생성, fill API 검증/에러 처리

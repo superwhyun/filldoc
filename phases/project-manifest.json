@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "project": "RepGen",
+  "project": "filldoc",
   "goal": "goal.json",
   "phases": [
     {

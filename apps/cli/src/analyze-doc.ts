@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 /**
  * 실제로 작성된 예시 .docx(또는 .pdf/.txt/.md) 문서를 분석해서
- * 재사용 가능한 RepGen 템플릿({{placeholder}} 포함)을 생성하는 독립 CLI.
+ * 재사용 가능한 filldoc 템플릿({{placeholder}} 포함)을 생성하는 독립 CLI.
  * Hermes 같은 외부 에이전트가 "skill"로 직접 호출하기 위한 용도.
  *
  * 사용법:
- *   OPENAI_API_KEY=sk-... repgen-analyze-doc \
+ *   OPENAI_API_KEY=sk-... filldoc-analyze-doc \
  *     --source ./예시-회의록.docx \
  *     --output ./새템플릿.docx \
  *     [--provider openai|grok] [--api-key sk-...] [--template-name 이름]
@@ -29,7 +29,7 @@ type CliArgs = {
 
 function printUsage() {
   console.error(`사용법:
-  repgen-analyze-doc --source <예시.docx> --output <새템플릿.docx> [--provider openai|grok] [--api-key <key>] [--template-name <이름>]
+  filldoc-analyze-doc --source <예시.docx> --output <새템플릿.docx> [--provider openai|grok] [--api-key <key>] [--template-name <이름>]
 
 옵션:
   --source         실제로 작성 완료된 예시 문서 경로 (.docx/.pdf/.txt/.md) (필수)
@@ -39,7 +39,7 @@ function printUsage() {
   --template-name  생성될 템플릿의 선호 파일명(확장자 없이/있이 모두 가능)
 
 예시:
-  OPENAI_API_KEY=sk-... repgen-analyze-doc --source ./예시-회의록.docx --output ./.skills/filldoc/templates/wg-recommendations.docx`)
+  OPENAI_API_KEY=sk-... filldoc-analyze-doc --source ./예시-회의록.docx --output ./.skills/filldoc/templates/wg-recommendations.docx`)
 }
 
 function parseArgs(argv: string[]): CliArgs {
@@ -166,7 +166,7 @@ async function main() {
   )
 
   if (!validation.ok) {
-    console.error(`경고: 생성된 템플릿이 문법 검증을 통과하지 못했습니다. repgen-extract-doc으로 다시 확인하세요.`)
+    console.error(`경고: 생성된 템플릿이 문법 검증을 통과하지 못했습니다. filldoc-extract-doc으로 다시 확인하세요.`)
     for (const v of validation.validations) console.error(`  - ${v}`)
   }
 }

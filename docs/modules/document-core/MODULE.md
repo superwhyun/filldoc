@@ -9,7 +9,7 @@ contract_version: 1.1.0
 
 # document-core
 
-RepGen의 템플릿 분석, 문서 텍스트 추출, 데이터 검증·렌더링, 원본 서식 보존 템플릿화, 스펙 기반 템플릿 조립을 제공한다. Claude Code·Codex 같은 호출 에이전트와 웹 UI는 이 모듈의 서로 다른 어댑터이며, 이 모듈은 AI 모델이나 HTTP를 호출하지 않는다.
+filldoc의 템플릿 분석, 문서 텍스트 추출, 데이터 검증·렌더링, 원본 서식 보존 템플릿화, 스펙 기반 템플릿 조립을 제공한다. Claude Code·Codex 같은 호출 에이전트와 웹 UI는 이 모듈의 서로 다른 어댑터이며, 이 모듈은 AI 모델이나 HTTP를 호출하지 않는다.
 
 ## Contract
 
@@ -18,7 +18,7 @@ RepGen의 템플릿 분석, 문서 텍스트 추출, 데이터 검증·렌더링
 - 입력과 출력의 binary 형식은 `Uint8Array`다. Node `Buffer`는 CLI/web 어댑터에서만 변환한다.
 - core는 파일 경로, `node:fs`, 환경변수, `process`, HTTP, Next.js, React, `window`, `document`, `File`, `Blob`, `localStorage`, provider SDK, `fetch`를 import하거나 요구하지 않는다.
 - `packages/core`는 Node 22+에서 실행되는 순수 문서 엔진이다. DOCX/PDF 라이브러리는 허용하지만 network/provider 의존성은 허용하지 않는다.
-- AI provider 호출은 `packages/providers`의 선택적 legacy 기능이다. `repgen-fill-doc` 호환 기능은 core API가 아니다.
+- AI provider 호출은 `packages/providers`의 선택적 legacy 기능이다. `filldoc-fill-doc` 호환 기능은 core API가 아니다.
 
 ### Public types
 
@@ -104,13 +104,13 @@ templatize-document({ source, edits }) -> template.docx
 
 | Consumer | Current input | Success contract | Current failure/side effect | Target adapter responsibility |
 | --- | --- | --- | --- | --- |
-| `repgen-extract-doc` | `--template <.docx>` | stdout `{ placeholders }` | invalid template/parse error → stderr, exit 1 | read path, call `inspectTemplate`, JSON encode |
-| `repgen-extract-text` | `--file <.docx|.pdf|.txt|.md>` | stdout text | empty/unsupported/corrupt source → stderr, exit 1 | read path, preserve filename, print text |
-| `repgen-render-doc` | `--template`, `--data` or `--data-json`, `--output`, optional `--allow-partial` | writes DOCX, stdout `{ output, filledKeys }` | missing values default stop; partial warns; invalid input → exit 1 | JSON/file loading, missing-data policy, write output |
-| `repgen-templatize-doc` | `--source`, `--edits` or `--edits-json`, `--output` | writes DOCX, stdout `{ output, placeholderCount, templateValid }` | unmatched edit/invalid JSON → stderr, exit 1 | JSON/file loading, write output, inspection summary |
-| `repgen-build-template` | `--spec` or `--spec-json`, `--output`, optional name | writes DOCX, stdout validation summary | invalid spec/JSON → stderr, exit 1 | spec parsing, write output, inspection summary |
-| `repgen-analyze-doc` | source, provider, API key | writes AI-generated DOCX, stdout validation summary | provider/credential failure → exit 1 | legacy provider adapter; not core |
-| `repgen-fill-doc` | template, sources, provider, API key | writes AI-filled DOCX, stdout processing summary | provider/credential/source failure → exit 1 | legacy provider adapter; not core |
+| `filldoc-extract-doc` | `--template <.docx>` | stdout `{ placeholders }` | invalid template/parse error → stderr, exit 1 | read path, call `inspectTemplate`, JSON encode |
+| `filldoc-extract-text` | `--file <.docx|.pdf|.txt|.md>` | stdout text | empty/unsupported/corrupt source → stderr, exit 1 | read path, preserve filename, print text |
+| `filldoc-render-doc` | `--template`, `--data` or `--data-json`, `--output`, optional `--allow-partial` | writes DOCX, stdout `{ output, filledKeys }` | missing values default stop; partial warns; invalid input → exit 1 | JSON/file loading, missing-data policy, write output |
+| `filldoc-templatize-doc` | `--source`, `--edits` or `--edits-json`, `--output` | writes DOCX, stdout `{ output, placeholderCount, templateValid }` | unmatched edit/invalid JSON → stderr, exit 1 | JSON/file loading, write output, inspection summary |
+| `filldoc-build-template` | `--spec` or `--spec-json`, `--output`, optional name | writes DOCX, stdout validation summary | invalid spec/JSON → stderr, exit 1 | spec parsing, write output, inspection summary |
+| `filldoc-analyze-doc` | source, provider, API key | writes AI-generated DOCX, stdout validation summary | provider/credential failure → exit 1 | legacy provider adapter; not core |
+| `filldoc-fill-doc` | template, sources, provider, API key | writes AI-filled DOCX, stdout processing summary | provider/credential/source failure → exit 1 | legacy provider adapter; not core |
 | `POST /api/extract-placeholders` | JSON `{ content }` | `{ placeholders, warnings? }` | invalid template 400; unexpected 500 | decode bytes, map core result to HTTP |
 | `POST /api/extract-text` | JSON `{ content, filename }` | `{ text }` | missing/unsupported source 400; unexpected 500 | decode bytes, map core error to HTTP |
 | `POST /api/generate-document` | JSON `{ templateContent, placeholders, allowPartial? }` | DOCX attachment response | missing render data (not `allowPartial`) 400; render failure 500 | decode bytes, call `validateRenderData`, render, stream result |

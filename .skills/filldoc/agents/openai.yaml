@@ -1,4 +1,4 @@
 interface:
   display_name: "FillDoc"
-  short_description: "RepGen template filling workflow and implementation guide."
-  default_prompt: "Implement or refine RepGen template and data filling workflows with incremental changes and explicit validation."
+  short_description: "filldoc template filling workflow and implementation guide."
+  default_prompt: "Implement or refine filldoc template and data filling workflows with incremental changes and explicit validation."

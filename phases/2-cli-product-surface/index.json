@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "project": "RepGen",
+  "project": "filldoc",
   "phase": "cli-product-surface",
   "execution_policy": {
     "context_mode": "contract-first",
@@ -58,6 +58,13 @@
       "kind": "review-fix",
       "status": "completed",
       "summary": "phase-close 이후 사용자 요청(외부 배포/npm install 시나리오 점검)으로 재리뷰. apps/cli/package.json에 prepare 스크립트를 추가하고 esbuild를 dependencies로 옮겨, gitignore된 dist/가 설치 시 자동 빌드되게 했다. 실제 로컬 재현 검증 중 애초 가정(git URL #branch:subdirectory로 서브디렉터리만 설치 가능)이 npm/pnpm 모두에서 성립하지 않음을 발견해 정정했고, 실제로 동작하는 설치 경로(git clone 후 cd apps/cli && npm install -g .)를 확정·검증했다"
+    },
+    {
+      "step": 8,
+      "name": "rename-repgen-to-filldoc",
+      "kind": "review-fix",
+      "status": "completed",
+      "summary": "npm publish 대화 중 사용자 요청으로 제품/CLI 이름을 RepGen에서 filldoc으로 전체 프로젝트 범위로 변경. apps/cli/src/repgen.ts를 filldoc.ts로 rename, bin 커맨드(filldoc, filldoc-extract-doc 등 8개), apps/cli package.json name(filldoc-cli), 루트 package.json name/bin, packages/core package.json name(@filldoc/core)을 갱신. 살아있는 문서(README.md, .skills/filldoc/SKILL.md, docs/modules/*.md, AGENTS.md)와 테스트(tests/cli/e2e.test.ts, tests/e2e/*.spec.ts)도 함께 갱신. 이미 태그된 과거 phase의 step*.md/baseline*.json 본문, git 커밋 메시지(feat(RepGen/stepN):...), 기존 git 태그(RepGen-phaseN-done), GitHub 저장소 URL(github.com/superwhyun/RepGen)은 불변 이력이라 그대로 두었다 — 앞으로의 커밋 컨벤션만 filldoc/stepN으로 바뀌도록 모든 phases/*/index.json과 phases/project-manifest.json, docs/modules/registry.json의 project 필드를 filldoc으로 갱신했다. lib/template-storage.ts의 IndexedDB 이름(repgen-template-db→filldoc-template-db)도 함께 바꿨는데, 이는 기존 브라우저에 저장된 로컬 템플릿 데이터가 새 DB 이름으로는 보이지 않게 되는 결과를 낳는다(이 프로젝트가 아직 외부 프로덕션 사용자가 없는 단계라 판단해 진행)."
     }
   ]
 }

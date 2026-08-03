@@ -10,7 +10,7 @@ let templatePath: string
 
 test.beforeAll(async () => {
   const template = await createDocx(["{{title}}", "Author: {{author}}"])
-  const dir = mkdtempSync(join(tmpdir(), "repgen-e2e-"))
+  const dir = mkdtempSync(join(tmpdir(), "filldoc-e2e-"))
   templatePath = join(dir, "template.docx")
   writeFileSync(templatePath, template)
 })
@@ -45,7 +45,7 @@ test("template upload → placeholders → manual data entry → generate → do
   await page.getByRole("link", { name: "Download Document" }).click()
   const download = await downloadPromise
 
-  const downloadedPath = join(mkdtempSync(join(tmpdir(), "repgen-e2e-download-")), "filled.docx")
+  const downloadedPath = join(mkdtempSync(join(tmpdir(), "filldoc-e2e-download-")), "filled.docx")
   await download.saveAs(downloadedPath)
 
   // 6) core로 다시 읽어 값이 실제로 렌더링됐는지 확인 (CLI/core 결과와 동등성)

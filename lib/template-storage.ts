@@ -4,7 +4,7 @@ export type StoredTemplate = {
   updatedAt: number
 }
 
-const DB_NAME = "repgen-template-db"
+const DB_NAME = "filldoc-template-db"
 const STORE_NAME = "templates"
 const DB_VERSION = 1
 

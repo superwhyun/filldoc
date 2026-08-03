@@ -273,7 +273,7 @@ export async function generateTemplateDocx(input: GenerateTemplateInput) {
 
 /**
  * 이미 호출자(예: 이미 LLM인 에이전트)가 직접 결정한 TemplateGenerationJson 스펙을
- * 그대로 docx로 조립한다. AI 호출이 전혀 없다 — RepGen은 순수 문서 조립기 역할만 한다.
+ * 그대로 docx로 조립한다. AI 호출이 전혀 없다 — filldoc은 순수 문서 조립기 역할만 한다.
  */
 export async function buildTemplateFromSpec(spec: TemplateGenerationJson, templateName?: string) {
   const name = templateName || spec.fileName || `template-${Date.now()}.docx`

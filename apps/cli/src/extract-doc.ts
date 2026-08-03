@@ -5,7 +5,7 @@
  * 스스로 값을 채운 뒤 render-doc으로 넘기는 흐름을 위한 1단계.
  *
  * 사용법:
- *   repgen-extract-doc --template template-basic.docx
+ *   filldoc-extract-doc --template template-basic.docx
  */
 import { readFileSync } from "node:fs"
 
@@ -14,7 +14,7 @@ import { CliProcessingError, CliUsageError, runCli } from "./lib/cli-support.ts"
 
 function printUsage() {
   console.error(`사용법:
-  repgen-extract-doc --template <template.docx>
+  filldoc-extract-doc --template <template.docx>
 
 옵션:
   --template   플레이스홀더가 포함된 .docx 템플릿 경로 (필수)

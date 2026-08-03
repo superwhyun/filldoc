@@ -20,7 +20,7 @@ let dataPath: string
 
 test.beforeAll(async () => {
   const template = await createDocx(["{{title}}", "Author: {{author}}"])
-  const dir = mkdtempSync(join(tmpdir(), "repgen-e2e-fake-provider-"))
+  const dir = mkdtempSync(join(tmpdir(), "filldoc-e2e-fake-provider-"))
   templatePath = join(dir, "template.docx")
   writeFileSync(templatePath, template)
 
@@ -92,7 +92,7 @@ test("fake provider happy path: BYOK key is forwarded and AI-filled values flow 
   expect(generateDocumentBody.apiKey).toBeUndefined()
   expect(JSON.stringify(generateDocumentBody)).not.toContain(byokKey)
 
-  const downloadedPath = join(mkdtempSync(join(tmpdir(), "repgen-e2e-fake-provider-dl-")), "filled.docx")
+  const downloadedPath = join(mkdtempSync(join(tmpdir(), "filldoc-e2e-fake-provider-dl-")), "filled.docx")
   await download.saveAs(downloadedPath)
   const text = await extractDocumentText(readFileSync(downloadedPath), "filled.docx")
   expect(text).toContain("AI Generated Title")

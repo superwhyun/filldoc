@@ -5,7 +5,7 @@
  * 텍스트만 뽑아서 에이전트 자신이 읽고 판단하도록 넘겨주는 용도.
  *
  * 사용법:
- *   repgen-extract-text --file ./예시-회의록.docx
+ *   filldoc-extract-text --file ./예시-회의록.docx
  */
 import { readFileSync } from "node:fs"
 import { basename } from "node:path"
@@ -15,7 +15,7 @@ import { CliProcessingError, CliUsageError, runCli } from "./lib/cli-support.ts"
 
 function printUsage() {
   console.error(`사용법:
-  repgen-extract-text --file <path>
+  filldoc-extract-text --file <path>
 
 옵션:
   --file   텍스트를 추출할 파일 경로 (.docx/.pdf/.txt/.md) (필수)

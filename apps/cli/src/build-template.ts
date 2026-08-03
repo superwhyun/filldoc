@@ -2,10 +2,10 @@
 /**
  * 호출자(에이전트)가 이미 결정한 템플릿 스펙(JSON)을 그대로 docx로 조립하는 독립 CLI.
  * AI 키 불필요 — 값 판단/분석은 이미 LLM인 호출 에이전트가 직접 하고,
- * RepGen은 순수하게 "스펙대로 문서 조립"만 한다.
+ * filldoc은 순수하게 "스펙대로 문서 조립"만 한다.
  *
- * 사용법 (repgen-extract-text로 예시 문서 텍스트를 먼저 읽고, 에이전트가 직접 스펙을 만든 뒤):
- *   repgen-build-template --spec ./spec.json --output ./새템플릿.docx
+ * 사용법 (filldoc-extract-text로 예시 문서 텍스트를 먼저 읽고, 에이전트가 직접 스펙을 만든 뒤):
+ *   filldoc-build-template --spec ./spec.json --output ./새템플릿.docx
  *
  * spec.json 형태 (TemplateGenerationJson):
  *   {
@@ -38,7 +38,7 @@ type CliArgs = {
 
 function printUsage() {
   console.error(`사용법:
-  repgen-build-template (--spec <spec.json> | --spec-json '<json string>') --output <새템플릿.docx> [--template-name <이름>]
+  filldoc-build-template (--spec <spec.json> | --spec-json '<json string>') --output <새템플릿.docx> [--template-name <이름>]
 
 옵션:
   --spec           TemplateGenerationJson 형태의 JSON 파일 경로 (--spec-json과 둘 중 하나 필수)
@@ -137,7 +137,7 @@ async function main() {
   )
 
   if (!validation.ok) {
-    console.error(`경고: 생성된 템플릿이 문법 검증을 통과하지 못했습니다. repgen-extract-doc으로 다시 확인하세요.`)
+    console.error(`경고: 생성된 템플릿이 문법 검증을 통과하지 못했습니다. filldoc-extract-doc으로 다시 확인하세요.`)
     for (const v of validation.validations) console.error(`  - ${v}`)
   }
 }

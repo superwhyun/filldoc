@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "project": "RepGen",
+  "project": "filldoc",
   "phase": "web-adapter",
   "execution_policy": {
     "context_mode": "contract-first",

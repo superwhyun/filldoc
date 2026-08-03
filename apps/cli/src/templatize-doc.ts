@@ -3,11 +3,11 @@
  * 실제 예시 .docx의 원본 서식(폰트/크기/굵게/밑줄/정렬 등)을 그대로 유지한 채,
  * 지정한 문단만 {{placeholder}}로 치환하거나 지정한 범위를 삭제해서 템플릿을 만드는
  * 독립 CLI. AI 키 불필요 — 어떤 문단을 어떻게 바꿀지는 호출자(에이전트)가 직접
- * repgen-extract-text로 원문을 읽고 판단해서 edits로 넘긴다.
+ * filldoc-extract-text로 원문을 읽고 판단해서 edits로 넘긴다.
  *
  * 사용법:
- *   repgen-extract-text --file ./예시.docx        # 1단계: 원문 확인
- *   repgen-templatize-doc --source ./예시.docx --edits ./edits.json --output ./템플릿.docx
+ *   filldoc-extract-text --file ./예시.docx        # 1단계: 원문 확인
+ *   filldoc-templatize-doc --source ./예시.docx --edits ./edits.json --output ./템플릿.docx
  *
  * edits.json 형태:
  *   [
@@ -41,7 +41,7 @@ type CliArgs = {
 
 function printUsage() {
   console.error(`사용법:
-  repgen-templatize-doc --source <원본.docx> (--edits <edits.json> | --edits-json '<json>') --output <템플릿.docx>
+  filldoc-templatize-doc --source <원본.docx> (--edits <edits.json> | --edits-json '<json>') --output <템플릿.docx>
 
 옵션:
   --source     원본 예시 문서 경로 (.docx) (필수)
@@ -156,7 +156,7 @@ function main() {
   )
 
   if (!validation.ok) {
-    console.error(`경고: 생성된 템플릿이 문법 검증을 통과하지 못했습니다. repgen-extract-doc으로 다시 확인하세요.`)
+    console.error(`경고: 생성된 템플릿이 문법 검증을 통과하지 못했습니다. filldoc-extract-doc으로 다시 확인하세요.`)
     for (const v of validation.validations) console.error(`  - ${v}`)
   }
 }

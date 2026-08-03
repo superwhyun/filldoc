@@ -35,7 +35,7 @@ beforeAll(() => {
 }, 30_000)
 
 beforeEach(() => {
-  workDir = mkdtempSync(join(tmpdir(), "repgen-cli-e2e-"))
+  workDir = mkdtempSync(join(tmpdir(), "filldoc-cli-e2e-"))
 })
 
 afterEach(() => {
@@ -157,7 +157,7 @@ describe("CLI E2E — packed dist, repository 밖 work directory", () => {
     expect(badJson.status).toBe(2)
   })
 
-  it("repgen unified alias는 개별 repgen-* 명령과 동일한 stdout을 낸다", () => {
+  it("filldoc unified alias는 개별 filldoc-* 명령과 동일한 stdout을 낸다", () => {
     run("build-template", [
       "--spec-json",
       JSON.stringify({ blocks: [{ type: "paragraph", text: "{{x}}" }] }),
@@ -166,30 +166,30 @@ describe("CLI E2E — packed dist, repository 밖 work directory", () => {
     ])
 
     const direct = run("extract-doc", ["--template", "./t.docx"])
-    const viaAlias = run("repgen", ["extract-doc", "--template", "./t.docx"])
+    const viaAlias = run("filldoc", ["extract-doc", "--template", "./t.docx"])
 
     expect(viaAlias.status).toBe(direct.status)
     expect(viaAlias.stdout).toBe(direct.stdout)
   })
 
-  it("repgen --version은 패키지 버전을 출력한다", () => {
-    const result = run("repgen", ["--version"])
+  it("filldoc --version은 패키지 버전을 출력한다", () => {
+    const result = run("filldoc", ["--version"])
     expect(result.status).toBe(0)
     const pkg = JSON.parse(readFileSync(join(repoRoot, "apps/cli/package.json"), "utf-8"))
     expect(result.stdout.trim()).toBe(pkg.version)
   })
 
-  it("repgen unified alias의 자체 오류(알 수 없는 명령)도 계약된 exit code와 stderr 형식을 따른다", () => {
-    const result = run("repgen", ["bogus-command"])
+  it("filldoc unified alias의 자체 오류(알 수 없는 명령)도 계약된 exit code와 stderr 형식을 따른다", () => {
+    const result = run("filldoc", ["bogus-command"])
     expect(result.status).toBe(2)
     expect(result.stdout).toBe("")
     expect(result.stderr).toContain("오류: 알 수 없는 명령입니다: bogus-command")
-    // repgen.ts의 main()이 runCli()로 감싸이지 않으면 raw stack trace가 나온다 — 회귀 방지.
+    // filldoc.ts의 main()이 runCli()로 감싸이지 않으면 raw stack trace가 나온다 — 회귀 방지.
     expect(result.stderr).not.toContain("at ")
   })
 
-  it("repgen을 통해 dispatch된 하위 명령의 비동기 실패도 exit code가 그대로 전파된다", () => {
-    // repgen.ts는 대상 명령의 runCli(main) 완료를 기다리지 않고 동적 import만 한다.
+  it("filldoc을 통해 dispatch된 하위 명령의 비동기 실패도 exit code가 그대로 전파된다", () => {
+    // filldoc.ts는 대상 명령의 runCli(main) 완료를 기다리지 않고 동적 import만 한다.
     // 이 동작이 이벤트 루프 자연 종료에 의존하므로(cli-support.ts의 runCli 주석 참고),
     // 실제 비동기 작업(파일 읽기 → extractPlaceholders) 이후에 던져지는 실패까지
     // 잘리지 않고 중첩 dispatch로 전파되는지 검증한다.
@@ -201,7 +201,7 @@ describe("CLI E2E — packed dist, repository 밖 work directory", () => {
     ])
     expect(built.status).toBe(0)
 
-    const result = run("repgen", ["fill-doc", "--template", "./tpl.docx", "--data", "./tpl.docx", "--output", "./out.docx"])
+    const result = run("filldoc", ["fill-doc", "--template", "./tpl.docx", "--data", "./tpl.docx", "--output", "./out.docx"])
     expect(result.status).toBe(4)
     expect(result.stdout).toBe("")
     expect(result.stderr).toContain("API 키가 없습니다")

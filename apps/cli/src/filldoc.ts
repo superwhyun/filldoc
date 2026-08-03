@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 /**
- * 7개 repgen-* 명령의 unified alias. 기존 개별 명령(repgen-extract-doc 등)은
- * 그대로 유지되며, 이 명령은 `repgen <subcommand> [...args]` 형태로 같은
+ * 7개 filldoc-* 명령의 unified alias. 기존 개별 명령(filldoc-extract-doc 등)은
+ * 그대로 유지되며, 이 명령은 `filldoc <subcommand> [...args]` 형태로 같은
  * 구현을 호출하는 추가 진입점이다.
  *
  * 사용법:
- *   repgen --version
- *   repgen <extract-doc|extract-text|render-doc|templatize-doc|build-template|fill-doc|analyze-doc> [...args]
+ *   filldoc --version
+ *   filldoc <extract-doc|extract-text|render-doc|templatize-doc|build-template|fill-doc|analyze-doc> [...args]
  */
 import { readFileSync } from "node:fs"
 import { dirname, join } from "node:path"
@@ -26,10 +26,10 @@ const COMMANDS = [
 
 function printUsage() {
   console.error(`사용법:
-  repgen --version
-  repgen <${COMMANDS.join("|")}> [...args]
+  filldoc --version
+  filldoc <${COMMANDS.join("|")}> [...args]
 
-각 subcommand는 repgen-<subcommand>와 동일하게 동작한다. 옵션은 repgen-<subcommand> --help로 확인한다.`)
+각 subcommand는 filldoc-<subcommand>와 동일하게 동작한다. 옵션은 filldoc-<subcommand> --help로 확인한다.`)
 }
 
 async function main() {

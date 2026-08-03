@@ -1,19 +1,19 @@
 {
-  "name": "repgen",
+  "name": "filldoc",
   "version": "0.1.0",
   "private": true,
   "engines": {
     "node": ">=22"
   },
   "bin": {
-    "repgen": "./apps/cli/src/repgen.ts",
-    "repgen-extract-doc": "./scripts/extract-doc.ts",
-    "repgen-render-doc": "./scripts/render-doc.ts",
-    "repgen-fill-doc": "./scripts/fill-doc.ts",
-    "repgen-analyze-doc": "./scripts/analyze-doc.ts",
-    "repgen-extract-text": "./scripts/extract-text.ts",
-    "repgen-build-template": "./scripts/build-template.ts",
-    "repgen-templatize-doc": "./scripts/templatize-doc.ts"
+    "filldoc": "./apps/cli/src/filldoc.ts",
+    "filldoc-extract-doc": "./scripts/extract-doc.ts",
+    "filldoc-render-doc": "./scripts/render-doc.ts",
+    "filldoc-fill-doc": "./scripts/fill-doc.ts",
+    "filldoc-analyze-doc": "./scripts/analyze-doc.ts",
+    "filldoc-extract-text": "./scripts/extract-text.ts",
+    "filldoc-build-template": "./scripts/build-template.ts",
+    "filldoc-templatize-doc": "./scripts/templatize-doc.ts"
   },
   "scripts": {
     "build": "next build",

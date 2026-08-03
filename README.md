@@ -1,4 +1,4 @@
-# RepGen - AI 기반 문서 자동 생성 시스템
+# filldoc - AI 기반 문서 자동 생성 시스템
 
 Word 템플릿의 플레이스홀더를 AI가 자동으로 채워주는 Next.js 기반 문서 생성 도구입니다.
 
@@ -23,7 +23,7 @@ npm install -g .
 
 (npm/pnpm은 git URL에서 서브디렉터리만 콕 집어 설치하는 기능을 제공하지 않으므로, 저장소 전체를 clone한 뒤 `apps/cli`에서 설치한다. `npm install`이 `esbuild`로 `dist/`를 자동 빌드한다.)
 
-`repgen-extract-doc`, `repgen-render-doc`, `repgen-fill-doc`, `repgen-extract-text`, `repgen-templatize-doc`, `repgen-build-template`, `repgen-analyze-doc` 커맨드가 어느 작업 디렉토리에서든 바로 실행된다.
+`filldoc-extract-doc`, `filldoc-render-doc`, `filldoc-fill-doc`, `filldoc-extract-text`, `filldoc-templatize-doc`, `filldoc-build-template`, `filldoc-analyze-doc` 커맨드가 어느 작업 디렉토리에서든 바로 실행된다.
 
 전체 커맨드 목록, 파라미터, 데이터 형식, 에러 처리 방식은 [`.skills/filldoc/SKILL.md`](./.skills/filldoc/SKILL.md)에 정리되어 있다. **에이전트는 이 저장소 링크만 받았다면 README보다 그 파일을 먼저 읽고 그대로 따라 하면 된다.**
 

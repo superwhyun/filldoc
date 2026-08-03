@@ -14,7 +14,7 @@ const ENTRIES = [
   "build-template",
   "fill-doc",
   "analyze-doc",
-  "repgen",
+  "filldoc",
 ]
 
 // packages/core/src와 lib/server/* 등 monorepo-internal 소스만 번들에 포함하고,
