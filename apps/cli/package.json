@@ -29,11 +29,9 @@
     "ai": "latest",
     "docx": "^9.6.0",
     "docxtemplater": "latest",
+    "esbuild": "^0.28.1",
     "openai": "^4.77.0",
     "pdf-parse": "^2.4.5",
     "pizzip": "latest"
-  },
-  "devDependencies": {
-    "esbuild": "^0.28.1"
   }
 }

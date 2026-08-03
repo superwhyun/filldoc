@@ -13,11 +13,15 @@ Word 템플릿의 플레이스홀더를 AI가 자동으로 채워주는 Next.js 
 
 ## 🤖 AI 에이전트가 CLI로 쓰기 (브라우저 없이)
 
-Hermes 같은 AI 에이전트는 브라우저나 Next 서버 없이, 이 저장소를 전역 CLI로 설치해서 바로 쓸 수 있다.
+Hermes 같은 AI 에이전트는 브라우저나 Next 서버 없이, `apps/cli`(Next/React 등 웹 의존성이 전혀 없는 독립 패키지, 의존성 7개)만 전역 CLI로 설치해서 바로 쓸 수 있다.
 
 ```bash
-npm install -g git+https://github.com/superwhyun/RepGen.git
+git clone https://github.com/superwhyun/RepGen.git
+cd RepGen/apps/cli
+npm install -g .
 ```
+
+(npm/pnpm은 git URL에서 서브디렉터리만 콕 집어 설치하는 기능을 제공하지 않으므로, 저장소 전체를 clone한 뒤 `apps/cli`에서 설치한다. `npm install`이 `esbuild`로 `dist/`를 자동 빌드한다.)
 
 `repgen-extract-doc`, `repgen-render-doc`, `repgen-fill-doc`, `repgen-extract-text`, `repgen-templatize-doc`, `repgen-build-template`, `repgen-analyze-doc` 커맨드가 어느 작업 디렉토리에서든 바로 실행된다.
 

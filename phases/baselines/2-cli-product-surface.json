@@ -63,12 +63,14 @@
     "rounds": 2,
     "round1_finding": "apps/cli/src/repgen.ts의 main()이 runCli()로 감싸이지 않아 예상치 못한 오류 시 raw stack trace와 계약 밖 exit code가 나옴 — step5(review-fix)로 수정, 회귀 테스트 추가",
     "round2_result": "no findings",
-    "post_close_review": "phase-close(태그 RepGen-phase2-done) 이후 사용자 요청으로 재리뷰 1회 추가 수행 — step6(review-fix)로 repgen.ts dispatch가 runCli()의 '성공 시 process.exit 없음' 불변조건에 암묵적으로 의존하던 부분을 코드 주석으로 문서화하고, 중첩 dispatch의 비동기 실패 전파 회귀 테스트를 추가함. 실제 동작 변경은 없었음(코드는 이전부터 정상 동작, latent risk를 사전에 문서화/테스트로 방지)."
+    "post_close_review": "phase-close(태그 RepGen-phase2-done) 이후 사용자 요청으로 재리뷰 1회 추가 수행 — step6(review-fix)로 repgen.ts dispatch가 runCli()의 '성공 시 process.exit 없음' 불변조건에 암묵적으로 의존하던 부분을 코드 주석으로 문서화하고, 중첩 dispatch의 비동기 실패 전파 회귀 테스트를 추가함. 실제 동작 변경은 없었음(코드는 이전부터 정상 동작, latent risk를 사전에 문서화/테스트로 방지).",
+    "post_close_review_2": "외부 배포(npm install) 시나리오를 사용자와 점검하던 중 추가 재리뷰 수행 — step7(review-fix)로 apps/cli/package.json에 prepare 스크립트를 추가하고 esbuild를 dependencies로 옮겨 git clone 기반 설치 시 dist/가 자동 빌드되게 함. 동시에 애초 baseline 곳곳에 깔려 있던 가정(git URL #branch:subdirectory로 apps/cli만 콕 집어 설치 가능)이 npm/pnpm 실측 검증에서 성립하지 않음을 발견해 정정 — README.md/.skills/filldoc/SKILL.md의 설치 안내를 'git clone 후 cd apps/cli && npm install -g .' 경로로 갱신함."
   },
   "known_issues": [
     "fill-doc/analyze-doc의 fake-provider 성공 경로(OpenAI file_search+vector store, Grok streamText) mocking은 이번 phase에서 다루지 않았다. CLI adapter가 책임지는 인자/exit code 분류(2/4)는 검증했지만, provider 응답 성공 경로 전체 mocking은 legacy provider adapter(lib/server/fill-placeholders.ts) 쪽 별도 작업이 필요하다.",
     "MODULE.md(document-core)에 문서화된 typed error code 체계는 여전히 미구현이며, CLI의 exit code 분류는 각 명령에서 error message/type을 보고 수동으로 매핑한 결과다 (Phase 1 deferred_backlog와 연동).",
-    "packages/providers로의 legacy AI 호출 코드 추출은 이번 phase 범위 밖이다 — lib/server/fill-placeholders.ts, lib/client-template-generator.ts가 CLI와 web 양쪽에서 그대로 재사용된다."
+    "packages/providers로의 legacy AI 호출 코드 추출은 이번 phase 범위 밖이다 — lib/server/fill-placeholders.ts, lib/client-template-generator.ts가 CLI와 web 양쪽에서 그대로 재사용된다.",
+    "지금은 'git clone + cd apps/cli && npm install -g .'(2단계)만 실측 검증됐다. 한 줄 'npm install -g <패키지명>'을 원하면 apps/cli를 npm 레지스트리에 실제로 publish해야 하는데, 이건 외부 레지스트리에 게시하는 행위라 사용자의 명시적 승인 없이는 수행하지 않았다(step7)."
   ],
   "written_at": "2026-08-03"
 }

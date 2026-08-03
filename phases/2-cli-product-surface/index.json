@@ -57,7 +57,7 @@
       "name": "review-fix-npm-git-install-prepare-script",
       "kind": "review-fix",
       "status": "completed",
-      "summary": "phase-close 이후 사용자 요청(외부 배포/npm install 시나리오 점검)으로 재리뷰. apps/cli/package.json에 prepare 스크립트가 없어 git URL 기반 설치(npm install -g \"git+...#branch:apps/cli\")시 gitignore된 dist/가 생성되지 않고 bin이 깨진 경로를 가리키던 문제를 발견, prepare: node build.mjs를 추가해 설치 시 자동 빌드되도록 수정한다"
+      "summary": "phase-close 이후 사용자 요청(외부 배포/npm install 시나리오 점검)으로 재리뷰. apps/cli/package.json에 prepare 스크립트를 추가하고 esbuild를 dependencies로 옮겨, gitignore된 dist/가 설치 시 자동 빌드되게 했다. 실제 로컬 재현 검증 중 애초 가정(git URL #branch:subdirectory로 서브디렉터리만 설치 가능)이 npm/pnpm 모두에서 성립하지 않음을 발견해 정정했고, 실제로 동작하는 설치 경로(git clone 후 cd apps/cli && npm install -g .)를 확정·검증했다"
     }
   ]
 }

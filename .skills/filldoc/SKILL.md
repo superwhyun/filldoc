@@ -76,23 +76,25 @@ Before finishing, confirm:
 
 ### 설치 (새 환경, 권장)
 
-저장소를 직접 clone할 필요 없이 GitHub에서 바로 전역 설치한다 (npm publish 없이 git 소스로 설치):
+CLI는 `apps/cli`(Next/React 등 웹 의존성이 전혀 없는 독립 패키지, 의존성 7개, 루트 저장소 대비 훨씬 가볍다)에 있다. npm/pnpm은 git URL에서 서브디렉터리만 골라 설치하는 기능을 지원하지 않으므로, 저장소를 clone한 뒤 `apps/cli`에서 전역 설치한다:
 
 ```bash
-npm install -g git+https://github.com/superwhyun/RepGen.git
+git clone https://github.com/superwhyun/RepGen.git
+cd RepGen/apps/cli
+npm install -g .
 ```
 
-`repgen-*` 커맨드가 어디서든 바로 생긴다. 이후 새 버전으로 갱신하고 싶으면 같은 명령을 다시 실행하면 된다.
+`npm install`이 `prepare` 스크립트로 `esbuild` 번들(`dist/*.js`)을 자동 생성하고, `-g .`가 그 결과물을 전역 `repgen-*` 커맨드로 심볼릭 링크한다. 이후 새 버전으로 갱신하고 싶으면 `git pull` 후 같은 `npm install -g .`를 다시 실행하면 된다.
 
 ### 설치 (이 저장소를 로컬에서 개발/디버깅할 때)
 
-이미 로컬에 clone해서 작업 중인 저장소라면 `npm link`로 연결해도 된다:
+이미 로컬에 clone해서 작업 중인 저장소라면 `apps/cli`에서 `npm link`로 연결해도 된다:
 
 ```bash
-cd <REPO_ROOT> && npm install && npm link
+cd <REPO_ROOT>/apps/cli && npm install && npm link
 ```
 
-아래 예시의 `<REPO_ROOT>`는 RepGen 저장소를 clone한 절대경로를 뜻한다 (이 `SKILL.md` 파일 경로에서 `.skills/filldoc/SKILL.md` 부분을 뗀 나머지). git 설치본을 쓴다면 이 경로 대신 npm이 전역에 설치한 패키지 경로(`npm root -g`/`repgen`)를 쓰면 된다.
+아래 예시의 `<REPO_ROOT>`는 RepGen 저장소를 clone한 절대경로를 뜻한다 (이 `SKILL.md` 파일 경로에서 `.skills/filldoc/SKILL.md` 부분을 뗀 나머지). git 설치본을 쓴다면 이 경로 대신 npm이 전역에 설치한 패키지 경로(`npm root -g`/`@repgen/cli`)를 쓰면 된다.
 
 템플릿 경로는 항상 절대경로를 쓴다: `<REPO_ROOT>/.skills/filldoc/templates/<파일명>.docx`
 
