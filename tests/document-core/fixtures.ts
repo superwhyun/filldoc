@@ -1,4 +1,4 @@
-import { Document, Packer, Paragraph, Table, TableCell, TableRow } from "docx"
+import { Document, Packer, Paragraph, Table, TableCell, TableRow, TextRun } from "docx"
 
 export async function createDocx(paragraphs: string[]): Promise<Buffer> {
   const document = new Document({
@@ -10,9 +10,16 @@ export async function createDocx(paragraphs: string[]): Promise<Buffer> {
   return Packer.toBuffer(document)
 }
 
-/** header + dot-notation placeholder row을 가진 표 하나짜리 docx를 만든다. */
-export async function createDocxTable(header: string[], rowCells: string[]): Promise<Buffer> {
-  const cell = (text: string) => new TableCell({ children: [new Paragraph(text)] })
+/**
+ * header + dot-notation placeholder row을 가진 표 하나짜리 docx를 만든다.
+ * 셀 값을 문자열 배열로 주면 각 조각을 별도 run으로 넣어 Word가 저장한 것처럼 placeholder를 쪼갠다.
+ */
+export async function createDocxTable(header: string[], rowCells: Array<string | string[]>): Promise<Buffer> {
+  const cell = (text: string | string[]) => new TableCell({
+    children: [typeof text === "string"
+      ? new Paragraph(text)
+      : new Paragraph({ children: text.map((piece) => new TextRun(piece)) })],
+  })
 
   const document = new Document({
     sections: [{

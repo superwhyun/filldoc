@@ -29,6 +29,51 @@ function angularParser(tag: string) {
   }
 }
 
+const RUN_REGEX = /<w:r(?:\s[^>]*)?>[\s\S]*?<\/w:r>/g
+const TEXT_NODE_REGEX = /<w:t(?:\s[^>]*)?>([\s\S]*?)<\/w:t>/g
+
+function runText(runXml: string): string {
+  return Array.from(runXml.matchAll(TEXT_NODE_REGEX), (match) => match[1]).join('')
+}
+
+// "{{"가 열린 채 끝나거나 "{" 한 글자로 끝나면(Word가 "{" "{"를 따로 저장하는 경우) 다음 run까지 이어진다.
+function hasOpenPlaceholder(text: string): boolean {
+  return text.lastIndexOf('{{') > text.lastIndexOf('}}') || /(^|[^{])\{$/.test(text)
+}
+
+// Word는 {{projects.id:설명}} 하나를 여러 run(<w:r>)으로 쪼개고 사이에 <w:proofErr> 등을 끼워 저장한다.
+// placeholder가 걸친 run들을 첫 run 하나로 합쳐 XML 상에서도 placeholder가 연속된 텍스트가 되게 한다.
+// 합친 run은 첫 run의 서식(rPr)을 따른다.
+function mergeSplitPlaceholderRuns(paragraphXml: string): string {
+  const runs = Array.from(paragraphXml.matchAll(RUN_REGEX), (match) => ({
+    xml: match[0],
+    start: match.index,
+    end: match.index + match[0].length,
+  }))
+
+  let result = ''
+  let cursor = 0
+  let index = 0
+  while (index < runs.length) {
+    let text = runText(runs[index].xml)
+    let last = index
+    while (hasOpenPlaceholder(text) && last + 1 < runs.length) {
+      last += 1
+      text += runText(runs[last].xml)
+    }
+
+    if (last > index) {
+      const first = runs[index].xml.replace(TEXT_NODE_REGEX, '')
+      const merged = first.replace(/<\/w:r>$/, `<w:t xml:space="preserve">${text}</w:t></w:r>`)
+      result += paragraphXml.slice(cursor, runs[index].start) + merged
+      cursor = runs[last].end
+    }
+    index = last + 1
+  }
+
+  return result + paragraphXml.slice(cursor)
+}
+
 // XML 전처리기: 점 문법(tasks.name)을 찾아 해당 행을 {#tasks}...{/tasks}로 감싸고 태그를 {{name}}으로 단순화합니다.
 function preProcessXml(xml: string): string {
   // 1. 모든 테이블 행(<w:tr>)을 찾습니다.
@@ -38,24 +83,17 @@ function preProcessXml(xml: string): string {
     // 워드 XML에서는 {{task.name}}이 내부적으로 <w:t> 태그 등으로 쪼개져 있을 수 있습니다.
     // 이를 감지하기 위해 태그를 제거한 순수 텍스트에서 먼저 확인합니다.
     const strippedText = rowXml.replace(/<[^>]+>/g, '')
-    const dotMatch = strippedText.match(/\{\{([a-zA-Z0-9_]+)\.([a-zA-Z0-9_\.]+)(?::[^}]+)?\}\}/)
+    const dotMatch = strippedText.match(/\{\{\s*([a-zA-Z0-9_]+)\.([a-zA-Z0-9_\.]+)\s*(?::[^}]+)?\}\}/)
 
     if (dotMatch) {
       const parentName = dotMatch[1]
 
-      // 2. 행 전체에서 parent. 형식이 포함된 모든 태그를 찾아 {{child}}로 바꿉니다.
-      // 스타일 태그(<...>)가 태그 중간에 끼어있을 수 있으므로 유연하게 매칭하지만,
-      // 플레이스홀더 경계({{ }})를 넘지 않도록 제한합니다.
-      const flexibleDotRegex = /\{\{(?:(?!\{\{|\}\})[\s\S])*?([a-zA-Z0-9_]+)(?:(?!\{\{|\}\})[\s\S])*?\.(?:(?!\{\{|\}\})[\s\S])*?([a-zA-Z0-9_\.]+)(?:(?!\{\{|\}\})[\s\S])*?\}\}/g
+      // 2. 쪼개진 placeholder run을 합친 뒤, parent. 형식 태그를 {{child}}로 바꿉니다(설명은 보존).
+      const mergedRowXml = rowXml.replace(/<w:p[\s>][\s\S]*?<\/w:p>/g, mergeSplitPlaceholderRuns)
+      const dotRegex = /\{\{\s*([a-zA-Z0-9_]+)\.([a-zA-Z0-9_\.]+)\s*(:[^}]*)?\}\}/g
 
-      let newRowXml = rowXml.replace(flexibleDotRegex, (match, p, c) => {
-        if (p === parentName) {
-          // 지침(description)이 있다면 보존 시도
-          const descMatch = match.match(/:((?:(?!\{\{|\}\})[\s\S])*)/)
-          const desc = descMatch ? `:${descMatch[1]}` : ''
-          return `{{${c}${desc}}}`
-        }
-        return match
+      let newRowXml = mergedRowXml.replace(dotRegex, (match, p, c, desc = '') => {
+        return p === parentName ? `{{${c}${desc}}}` : match
       })
 
       // 3. 행의 시작과 끝에 루프 태그를 삽입합니다.
